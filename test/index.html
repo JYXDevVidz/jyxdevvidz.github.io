@@ -40,11 +40,6 @@
     <div class="max-w-7xl mx-auto">
         <h1 class="text-3xl font-bold text-center my-6 text-gray-800">元素周期表</h1>
         
-        <!-- 页面加载状态指示器 -->
-        <div id="loadingIndicator" class="fixed top-0 left-0 right-0 bg-blue-500 text-white text-center py-2 z-50">
-            加载元素数据中...
-        </div>
-        
         <!-- 图例 -->
         <div class="flex flex-wrap justify-center gap-3 mb-6">
             <div class="flex items-center"><div class="w-4 h-4 category-nonmetal mr-1"></div>非金属</div>
@@ -241,9 +236,6 @@
             { symbol: "Og", name: "奥气", atomicNumber: 118, atomicWeight: 294, period: 7, group: 18, category: "unknown" }
         ];
 
-        // 存储从config.json加载的详细数据
-        let configData = null;
-
         // 创建元素的HTML元素
         function createElementHTML(element) {
             return `
@@ -343,29 +335,1201 @@
             table.appendChild(actinideMarker);
         }
 
-        // 从外部文件加载详细元素数据
-        async function loadConfigFromServer() {
-            try {
-                const response = await fetch('/js/eletable/config.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP错误：${response.status}`);
-                }
-                configData = await response.json();
-                console.log("成功从服务器加载元素配置数据");
-                
-                // 隐藏加载指示器
-                document.getElementById('loadingIndicator').style.display = 'none';
-            } catch (error) {
-                console.error("加载配置数据失败:", error);
-                document.getElementById('loadingIndicator').textContent = "加载元素数据失败。请刷新页面重试。";
-                document.getElementById('loadingIndicator').classList.remove('bg-blue-500');
-                document.getElementById('loadingIndicator').classList.add('bg-red-500');
+        // 模拟从config.json加载的详细元素数据
+        // 在实际应用中，这部分应该通过fetch或其他方式从config.json加载
+        const configData = {
+            "elements": {
+                {
+  "elements": {
+    "H": {
+      "category": "非金属",
+      "meltingPoint": "-259.16 °C",
+      "boilingPoint": "-252.87 °C",
+      "atomicRadius": "53 pm",
+      "electronConfig": "1s¹",
+      "discoverer": "亨利·卡文迪许",
+      "yearDiscovered": 1766,
+      "description": "氢是最轻的元素，也是宇宙中含量最丰富的元素。它是无色、无味、高度易燃的双原子气体，在标准条件下以H₂形式存在。氢是水和有机化合物的主要成分，在恒星核聚变中起关键作用。"
+    },
+    "He": {
+      "category": "稀有气体",
+      "meltingPoint": "-272.20 °C",
+      "boilingPoint": "-268.93 °C",
+      "atomicRadius": "31 pm",
+      "electronConfig": "1s²",
+      "discoverer": "皮埃尔·让森",
+      "yearDiscovered": 1868,
+      "description": "氦是第二轻的元素，也是宇宙中第二丰富的元素。它是无色、无味、惰性的单原子气体，在所有元素中沸点和熔点最低。氦广泛用于低温冷却、充气飞艇和作为保护气体。"
+    },
+    "Li": {
+      "category": "碱金属",
+      "meltingPoint": "180.54 °C",
+      "boilingPoint": "1342 °C",
+      "atomicRadius": "167 pm",
+      "electronConfig": "[He] 2s¹",
+      "discoverer": "约翰·奥古斯特·阿尔费德森",
+      "yearDiscovered": 1817,
+      "description": "锂是最轻的金属元素，质软呈银白色。它具有高反应性和低密度，是电池技术中的重要材料。锂及其化合物广泛用于精神科药物、合金和核聚变研究。"
+    },
+    "Be": {
+      "category": "碱土金属",
+      "meltingPoint": "1287 °C",
+      "boilingPoint": "2469 °C",
+      "atomicRadius": "112 pm",
+      "electronConfig": "[He] 2s²",
+      "discoverer": "路易-尼古拉·沃克兰",
+      "yearDiscovered": 1798,
+      "description": "铍是一种轻质、坚硬、脆性的灰白色金属。它具有高熔点、良好的导热性和对X射线透明等特性，被用于航空航天材料、核反应堆和精密仪器。铍及其化合物有剧毒。"
+    },
+    "B": {
+      "category": "类金属",
+      "meltingPoint": "2076 °C",
+      "boilingPoint": "3927 °C",
+      "atomicRadius": "87 pm",
+      "electronConfig": "[He] 2s² 2p¹",
+      "discoverer": "约瑟夫·路易·盖-吕萨克",
+      "yearDiscovered": 1808,
+      "description": "硼是一种黑色或棕色的类金属，硬度接近金刚石。它在地壳中含量较少，但硼化合物广泛用于玻璃制造、陶瓷、清洁剂和半导体工业。硼对植物生长至关重要。"
+    },
+    "C": {
+      "category": "非金属",
+      "meltingPoint": "3500 °C",
+      "boilingPoint": "4827 °C",
+      "atomicRadius": "70 pm",
+      "electronConfig": "1s² 2s² 2p²",
+      "discoverer": "古人",
+      "yearDiscovered": -3750,
+      "description": "碳是生命的基础元素，存在于所有有机化合物中。它以多种同素异形体存在，包括石墨、金刚石和富勒烯。"
+    },
+    "N": {
+      "category": "非金属",
+      "meltingPoint": "-210.01 °C",
+      "boilingPoint": "-195.79 °C",
+      "atomicRadius": "65 pm",
+      "electronConfig": "1s² 2s² 2p³",
+      "discoverer": "丹尼尔·卢瑟福",
+      "yearDiscovered": 1772,
+      "description": "氮是大气的主要成分，占空气体积的78%。它是蛋白质和DNA的关键组成部分，对生命至关重要。"
+    },
+    "O": {
+      "category": "非金属",
+      "meltingPoint": "-218.79 °C",
+      "boilingPoint": "-182.96 °C",
+      "atomicRadius": "60 pm",
+      "electronConfig": "1s² 2s² 2p⁴",
+      "discoverer": "约瑟夫·普里斯特利",
+      "yearDiscovered": 1774,
+      "description": "氧是地球大气中第二丰富的元素，对呼吸和燃烧至关重要。它是水的主要成分，占水分子质量的89%。"
+    },
+    "F": {
+      "category": "卤素",
+      "meltingPoint": "-219.67 °C",
+      "boilingPoint": "-188.11 °C",
+      "atomicRadius": "50 pm",
+      "electronConfig": "1s² 2s² 2p⁵",
+      "discoverer": "亨利·莫瓦桑",
+      "yearDiscovered": 1886,
+      "description": "氟是最活泼的非金属元素，具有极强的电负性。它用于制造不粘涂层和制冷剂，对牙齿健康也很重要。"
+    },
+    "Ne": {
+      "category": "惰性气体",
+      "meltingPoint": "-248.59 °C",
+      "boilingPoint": "-246.05 °C",
+      "atomicRadius": "38 pm",
+      "electronConfig": "1s² 2s² 2p⁶",
+      "discoverer": "威廉·拉姆齐",
+      "yearDiscovered": 1898,
+      "description": "氖是一种惰性气体，以其在霓虹灯中的明亮橙红色发光而闻名。它是宇宙中第五丰富的元素，但在地球上相对稀有。"
+    },
+    "Na": {
+      "category": "碱金属",
+      "meltingPoint": "97.79 °C",
+      "boilingPoint": "882.94 °C",
+      "atomicRadius": "186 pm",
+      "electronConfig": "[Ne] 3s¹",
+      "discoverer": "汉弗里·戴维",
+      "yearDiscovered": 1807,
+      "description": "钠是一种柔软的银白色金属，化学性质活泼，在自然界中以化合物形式存在。它是人体必需的电解质，广泛用于化工、冶金和照明等领域。"
+    },
+    "Mg": {
+      "category": "碱土金属",
+      "meltingPoint": "650 °C",
+      "boilingPoint": "1090 °C",
+      "atomicRadius": "160 pm",
+      "electronConfig": "[Ne] 3s²",
+      "discoverer": "约瑟夫·布莱克",
+      "yearDiscovered": 1755,
+      "description": "镁是一种轻质银白色金属，具有良好延展性。它是叶绿素的核心成分，在合金制造、医药和烟火中广泛应用。镁也是人体必需的矿物质元素。"
+    },
+    "Al": {
+      "category": "贫金属",
+      "meltingPoint": "660.32 °C",
+      "boilingPoint": "2519 °C",
+      "atomicRadius": "143 pm",
+      "electronConfig": "[Ne] 3s² 3p¹",
+      "discoverer": "汉斯·克里斯蒂安·奥斯特",
+      "yearDiscovered": 1825,
+      "description": "铝是地壳中含量最丰富的金属元素，具有银白色光泽和良好的导电导热性。因其轻质、耐腐蚀的特性，广泛用于航空航天、包装和建筑行业。"
+    },
+    "Si": {
+      "category": "类金属",
+      "meltingPoint": "1414 °C",
+      "boilingPoint": "3265 °C",
+      "atomicRadius": "111 pm",
+      "electronConfig": "[Ne] 3s² 3p²",
+      "discoverer": "永斯·雅各布·贝采利乌斯",
+      "yearDiscovered": 1824,
+      "description": "硅是地壳中第二丰富的元素，半导体特性的核心材料。它是现代电子工业的基础，广泛应用于太阳能电池、集成电路和玻璃制造等领域。"
+    },
+    "P": {
+      "category": "非金属",
+      "meltingPoint": "44.15 °C(白磷)",
+      "boilingPoint": "280.5 °C(白磷)",
+      "atomicRadius": "98 pm",
+      "electronConfig": "[Ne] 3s² 3p³",
+      "discoverer": "亨尼格·布兰德",
+      "yearDiscovered": 1669,
+      "description": "磷以多种同素异形体存在，是生命必需元素，构成DNA和ATP等重要生物分子。广泛用于肥料、火柴和阻燃剂生产，具有高反应活性。"
+    },
+    "S": {
+      "category": "非金属",
+      "meltingPoint": "115.21 °C",
+      "boilingPoint": "444.61 °C",
+      "atomicRadius": "88 pm",
+      "electronConfig": "[Ne] 3s² 3p⁴",
+      "discoverer": "古代已知",
+      "yearDiscovered": -5000,
+      "description": "硫是一种黄色固体，广泛存在于自然界中，是生命必需元素之一，用于制造硫酸、橡胶和肥料等。"
+    },
+    "Cl": {
+      "category": "卤素",
+      "meltingPoint": "-101.5 °C",
+      "boilingPoint": "-34.04 °C",
+      "atomicRadius": "79 pm",
+      "electronConfig": "[Ne] 3s² 3p⁵",
+      "discoverer": "卡尔·威廉·舍勒",
+      "yearDiscovered": 1774,
+      "description": "氯是一种黄绿色气体，具有强烈的刺激性气味，广泛用于消毒、漂白和制造塑料等工业用途。"
+    },
+    "Ar": {
+      "category": "惰性气体",
+      "meltingPoint": "-189.34 °C",
+      "boilingPoint": "-185.85 °C",
+      "atomicRadius": "71 pm",
+      "electronConfig": "[Ne] 3s² 3p⁶",
+      "discoverer": "威廉·拉姆齐",
+      "yearDiscovered": 1894,
+      "description": "氩是一种无色、无味的惰性气体，占地球大气的0.93%，常用于照明、焊接和保护气氛。"
+    },
+    "K": {
+      "category": "碱金属",
+      "meltingPoint": "63.5 °C",
+      "boilingPoint": "759 °C",
+      "atomicRadius": "227 pm",
+      "electronConfig": "[Ar] 4s¹",
+      "discoverer": "汉弗里·戴维",
+      "yearDiscovered": 1807,
+      "description": "钾是一种柔软的银白色金属，化学性质活泼，是植物生长必需的营养元素，广泛用于肥料和工业。"
+    },
+    "Ca": {
+      "category": "碱土金属",
+      "meltingPoint": "842 °C",
+      "boilingPoint": "1484 °C",
+      "atomicRadius": "197 pm",
+      "electronConfig": "[Ar] 4s²",
+      "discoverer": "汉弗里·戴维",
+      "yearDiscovered": 1808,
+      "description": "钙是一种银白色金属，是骨骼和牙齿的主要成分，广泛用于建筑材料、冶金和医药等领域。"
+    },
+    "Sc": {
+      "category": "过渡金属",
+      "meltingPoint": "1541 °C",
+      "boilingPoint": "2836 °C",
+      "atomicRadius": "162 pm",
+      "electronConfig": "[Ar] 3d¹ 4s²",
+      "discoverer": "拉尔斯·弗雷德里克·尼尔松",
+      "yearDiscovered": 1879,
+      "description": "钪是一种柔软的银白色金属，属于稀土元素。它在自然界中分布稀少，主要用于制造高强度铝合金和特种玻璃。钪的化合物在荧光材料中也有应用。"
+    },
+    "Ti": {
+      "category": "过渡金属",
+      "meltingPoint": "1668 °C",
+      "boilingPoint": "3287 °C",
+      "atomicRadius": "147 pm",
+      "electronConfig": "[Ar] 3d² 4s²",
+      "discoverer": "威廉·格雷戈尔",
+      "yearDiscovered": 1791,
+      "description": "钛是一种强度高、重量轻、耐腐蚀的金属，广泛用于航空航天、医疗植入物和体育器材。它的氧化物二氧化钛是重要的白色颜料。"
+    },
+    "V": {
+      "category": "过渡金属",
+      "meltingPoint": "1910 °C",
+      "boilingPoint": "3407 °C",
+      "atomicRadius": "134 pm",
+      "electronConfig": "[Ar] 3d³ 4s²",
+      "discoverer": "安德烈斯·曼努埃尔·德尔里奥",
+      "yearDiscovered": 1801,
+      "description": "钒是一种坚硬、银灰色的金属，主要用于制造高强度钢材。它的化合物在催化剂和电池中有重要应用。钒的氧化物呈现多种颜色。"
+    },
+    "Cr": {
+      "category": "过渡金属",
+      "meltingPoint": "1907 °C",
+      "boilingPoint": "2671 °C",
+      "atomicRadius": "128 pm",
+      "electronConfig": "[Ar] 3d⁵ 4s¹",
+      "discoverer": "路易斯·尼古拉斯·沃克兰",
+      "yearDiscovered": 1797,
+      "description": "铬是一种坚硬、有光泽的金属，主要用于不锈钢生产和电镀。它的化合物呈现多种颜色，在颜料和染料中有广泛应用。"
+    },
+    "Mn": {
+      "category": "过渡金属",
+      "meltingPoint": "1246 °C",
+      "boilingPoint": "2061 °C",
+      "atomicRadius": "127 pm",
+      "electronConfig": "[Ar] 3d⁵ 4s²",
+      "discoverer": "约翰·戈特利布·甘恩",
+      "yearDiscovered": 1774,
+      "description": "锰是一种重要的工业金属，主要用于钢铁生产以提高强度和硬度。它在生物体内也扮演重要角色，是多种酶的必需成分。"
+    },
+    "Fe": {
+      "category": "过渡金属",
+      "meltingPoint": "1538 °C",
+      "boilingPoint": "2862 °C",
+      "atomicRadius": "126 pm",
+      "electronConfig": "[Ar] 3d⁶ 4s²",
+      "discoverer": "古代人类",
+      "yearDiscovered": -5000,
+      "description": "铁是地壳中含量第四多的元素，具有磁性，是钢铁的主要成分，广泛应用于建筑和制造业。"
+    },
+    "Co": {
+      "category": "过渡金属",
+      "meltingPoint": "1495 °C",
+      "boilingPoint": "2927 °C",
+      "atomicRadius": "125 pm",
+      "electronConfig": "[Ar] 3d⁷ 4s²",
+      "discoverer": "乔治·勃兰特",
+      "yearDiscovered": 1735,
+      "description": "钴是一种硬质、银灰色的金属，用于制造高强度合金、磁性和电池材料，如锂离子电池。"
+    },
+    "Ni": {
+      "category": "过渡金属",
+      "meltingPoint": "1455 °C",
+      "boilingPoint": "2913 °C",
+      "atomicRadius": "124 pm",
+      "electronConfig": "[Ar] 3d⁸ 4s²",
+      "discoverer": "阿克塞尔·弗雷德里克·克龙斯泰特",
+      "yearDiscovered": 1751,
+      "description": "镍是一种银白色金属，具有耐腐蚀性，广泛用于不锈钢、硬币和电池制造。"
+    },
+    "Cu": {
+      "category": "过渡金属",
+      "meltingPoint": "1084.62 °C",
+      "boilingPoint": "2562 °C",
+      "atomicRadius": "128 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s¹",
+      "discoverer": "古代人类",
+      "yearDiscovered": -9000,
+      "description": "铜是一种红棕色金属，具有优异的导电性和导热性，广泛用于电线、电子设备和建筑材料。"
+    },
+    "Zn": {
+      "category": "过渡金属",
+      "meltingPoint": "419.53 °C",
+      "boilingPoint": "907 °C",
+      "atomicRadius": "134 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s²",
+      "discoverer": "安德烈亚斯·西吉斯蒙德·马格拉夫",
+      "yearDiscovered": 1746,
+      "description": "锌是一种蓝白色金属，主要用于镀锌防锈、制造黄铜和干电池，对人体免疫系统至关重要。"
+    },
+    "Ga": {
+      "category": "金属",
+      "meltingPoint": "29.76 °C",
+      "boilingPoint": "2204 °C",
+      "atomicRadius": "135 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p¹",
+      "discoverer": "保罗·埃米尔·勒科克·德布瓦博德兰",
+      "yearDiscovered": 1875,
+      "description": "镓是一种柔软的银白色金属，在接近室温时熔化。它主要用于半导体和LED生产。"
+    },
+    "Ge": {
+      "category": "类金属",
+      "meltingPoint": "938.25 °C",
+      "boilingPoint": "2833 °C",
+      "atomicRadius": "125 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p²",
+      "discoverer": "克莱门斯·温克勒",
+      "yearDiscovered": 1886,
+      "description": "锗是一种灰白色的类金属，具有半导体性质。它广泛用于光纤、红外光学和电子设备。"
+    },
+    "As": {
+      "category": "类金属",
+      "meltingPoint": "817 °C",
+      "boilingPoint": "614 °C（升华）",
+      "atomicRadius": "115 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p³",
+      "discoverer": "阿尔贝图斯·马格努斯",
+      "yearDiscovered": 1250,
+      "description": "砷是一种有毒的类金属，存在多种同素异形体。它用于合金、农药和半导体材料。"
+    },
+    "Se": {
+      "category": "非金属",
+      "meltingPoint": "221 °C",
+      "boilingPoint": "685 °C",
+      "atomicRadius": "115 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p⁴",
+      "discoverer": "永斯·雅各布·贝采利乌斯",
+      "yearDiscovered": 1817,
+      "description": "硒是一种非金属元素，有多种同素异形体。它用于玻璃制造、光电池和复印机感光鼓。"
+    },
+    "Br": {
+      "category": "卤素",
+      "meltingPoint": "-7.2 °C",
+      "boilingPoint": "58.8 °C",
+      "atomicRadius": "115 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p⁵",
+      "discoverer": "安东尼·杰罗姆·巴拉尔",
+      "yearDiscovered": 1826,
+      "description": "溴是唯一在室温下呈液态的非金属元素，具有强烈的刺激性气味。它用于阻燃剂、医药和摄影化学品。"
+    },
+    "Kr": {
+      "category": "稀有气体",
+      "meltingPoint": "-157.36 °C",
+      "boilingPoint": "-153.22 °C",
+      "atomicRadius": "88 pm",
+      "electronConfig": "[Ar] 3d¹⁰ 4s² 4p⁶",
+      "discoverer": "威廉·拉姆齐和莫里斯·特拉弗斯",
+      "yearDiscovered": 1898,
+      "description": "氪是一种无色、无味的稀有气体，化学性质极不活泼。它存在于大气中，含量极低，主要用于照明和激光技术。"
+    },
+    "Rb": {
+      "category": "碱金属",
+      "meltingPoint": "39.31 °C",
+      "boilingPoint": "688 °C",
+      "atomicRadius": "265 pm",
+      "electronConfig": "[Kr] 5s¹",
+      "discoverer": "罗伯特·本生和古斯塔夫·基尔霍夫",
+      "yearDiscovered": 1861,
+      "description": "铷是一种柔软的银白色碱金属，化学性质活泼，易与水和空气反应。它主要用于科研和某些特殊应用，如原子钟。"
+    },
+    "Sr": {
+      "category": "碱土金属",
+      "meltingPoint": "777 °C",
+      "boilingPoint": "1382 °C",
+      "atomicRadius": "219 pm",
+      "electronConfig": "[Kr] 5s²",
+      "discoverer": "阿代尔·克劳福德",
+      "yearDiscovered": 1790,
+      "description": "锶是一种银白色碱土金属，化学性质活泼。它主要用于制造烟花和信号弹，因其燃烧时会产生鲜艳的红色火焰。"
+    },
+    "Y": {
+      "category": "过渡金属",
+      "meltingPoint": "1522 °C",
+      "boilingPoint": "3345 °C",
+      "atomicRadius": "212 pm",
+      "electronConfig": "[Kr] 4d¹ 5s²",
+      "discoverer": "约翰·加多林",
+      "yearDiscovered": 1794,
+      "description": "钇是一种银灰色过渡金属，化学性质稳定。它主要用于制造超导体、激光材料和某些合金，具有重要的工业应用价值。"
+    },
+    "Zr": {
+      "category": "过渡金属",
+      "meltingPoint": "1855 °C",
+      "boilingPoint": "4409 °C",
+      "atomicRadius": "206 pm",
+      "electronConfig": "[Kr] 4d² 5s²",
+      "discoverer": "马丁·克拉普罗特",
+      "yearDiscovered": 1789,
+      "description": "锆是一种银灰色过渡金属，耐腐蚀性强。它广泛用于核工业、化工设备和珠宝制造，是一种重要的工程材料。"
+    },
+    "Nb": {
+      "category": "过渡金属",
+      "meltingPoint": "2477 °C",
+      "boilingPoint": "4744 °C",
+      "atomicRadius": "146 pm",
+      "electronConfig": "[Kr] 4d⁴ 5s¹",
+      "discoverer": "查尔斯·哈契特",
+      "yearDiscovered": 1801,
+      "description": "铌是一种柔软的灰色过渡金属，具有高延展性和耐腐蚀性。它主要用于合金制造，特别是在高温应用中，如喷气发动机和火箭部件。"
+    },
+    "Mo": {
+      "category": "过渡金属",
+      "meltingPoint": "2623 °C",
+      "boilingPoint": "4639 °C",
+      "atomicRadius": "139 pm",
+      "electronConfig": "[Kr] 4d⁵ 5s¹",
+      "discoverer": "卡尔·威廉·舍勒",
+      "yearDiscovered": 1778,
+      "description": "钼是一种银白色过渡金属，具有高强度和耐高温性能。它广泛用于钢铁合金中以提高强度和耐腐蚀性，也用于电子和化工行业。"
+    },
+    "Tc": {
+      "category": "过渡金属",
+      "meltingPoint": "2157 °C",
+      "boilingPoint": "4265 °C",
+      "atomicRadius": "136 pm",
+      "electronConfig": "[Kr] 4d⁵ 5s²",
+      "discoverer": "卡洛·佩里尔和埃米利奥·塞格雷",
+      "yearDiscovered": 1937,
+      "description": "锝是第一个由人工合成的元素，具有放射性。它在自然界中极少存在，主要用于医学成像和放射性治疗。"
+    },
+    "Ru": {
+      "category": "过渡金属",
+      "meltingPoint": "2334 °C",
+      "boilingPoint": "4150 °C",
+      "atomicRadius": "134 pm",
+      "electronConfig": "[Kr] 4d⁷ 5s¹",
+      "discoverer": "卡尔·恩斯特·克劳斯",
+      "yearDiscovered": 1844,
+      "description": "钌是一种稀有的过渡金属，具有高硬度和耐腐蚀性。它主要用于电子工业中的电接触材料和催化剂，也用于合金制造。"
+    },
+    "Rh": {
+      "category": "过渡金属",
+      "meltingPoint": "1964 °C",
+      "boilingPoint": "3695 °C",
+      "atomicRadius": "134 pm",
+      "electronConfig": "[Kr] 4d⁸ 5s¹",
+      "discoverer": "威廉·海德·沃拉斯顿",
+      "yearDiscovered": 1803,
+      "description": "铑是一种稀有的银白色过渡金属，具有高反射性和耐腐蚀性。它主要用于汽车催化转化器、珠宝和电接触材料。"
+    },
+    "Pd": {
+      "category": "过渡金属",
+      "meltingPoint": "1554.9 °C",
+      "boilingPoint": "2963 °C",
+      "atomicRadius": "137 pm",
+      "electronConfig": "[Kr] 4d¹⁰",
+      "discoverer": "威廉·海德·沃拉斯顿",
+      "yearDiscovered": 1803,
+      "description": "钯是一种稀有的银白色过渡金属，具有良好的延展性和耐腐蚀性。它是铂族金属之一，常用于催化转化器、电子设备和珠宝制造。"
+    },
+    "Ag": {
+      "category": "过渡金属",
+      "meltingPoint": "961.78 °C",
+      "boilingPoint": "2162 °C",
+      "atomicRadius": "144 pm",
+      "electronConfig": "[Kr] 4d¹⁰ 5s¹",
+      "discoverer": "古代已知",
+      "yearDiscovered": -3000,
+      "description": "银是一种有光泽的白色贵金属，具有最高的导电性和导热性。它广泛用于珠宝、货币、电子产品和摄影，并具有抗菌特性。"
+    },
+    "Cd": {
+      "category": "过渡金属",
+      "meltingPoint": "321.07 °C",
+      "boilingPoint": "767 °C",
+      "atomicRadius": "151 pm",
+      "electronConfig": "[Kr] 4d¹⁰ 5s²",
+      "discoverer": "弗里德里希·斯特罗迈尔",
+      "yearDiscovered": 1817,
+      "description": "镉是一种柔软的蓝白色金属，具有毒性。它主要用于镍镉电池、颜料和电镀，但由于其环境危害，使用正逐渐减少。"
+    },
+    "In": {
+      "category": "后过渡金属",
+      "meltingPoint": "156.6 °C",
+      "boilingPoint": "2072 °C",
+      "atomicRadius": "167 pm",
+      "electronConfig": "[Kr] 4d¹⁰ 5s² 5p¹",
+      "discoverer": "费迪南德·赖希和希罗尼穆斯·特奥多尔·里希特",
+      "yearDiscovered": 1863,
+      "description": "铟是一种柔软的银白色金属，具有延展性。它主要用于制造透明导电的氧化铟锡(ITO)薄膜，广泛应用于液晶显示器和触摸屏。"
+    },
+    "Sn": {
+      "category": "后过渡金属",
+      "meltingPoint": "231.93 °C",
+      "boilingPoint": "2602 °C",
+      "atomicRadius": "145 pm",
+      "electronConfig": "[Kr] 4d¹⁰ 5s² 5p²",
+      "discoverer": "古代已知",
+      "yearDiscovered": -3000,
+      "description": "锡是一种可延展的银白色金属，不易氧化。它主要用于制造锡罐的镀层、焊料和青铜合金，在电子工业中有重要应用。"
+    },
+    "Sb": {
+      "category": "类金属",
+      "meltingPoint": "630.63 °C",
+      "boilingPoint": "1587 °C",
+      "atomicRadius": "133 pm",
+      "electronConfig": "[Kr] 4d10 5s2 5p3",
+      "discoverer": "古代已知",
+      "yearDiscovered": -3000,
+      "description": "锑是一种有光泽的灰色类金属，具有脆性。它主要用于阻燃剂、合金和半导体材料。锑化合物在古代就被用作化妆品和药物。"
+    },
+    "Te": {
+      "category": "类金属",
+      "meltingPoint": "449.51 °C",
+      "boilingPoint": "988 °C",
+      "atomicRadius": "123 pm",
+      "electronConfig": "[Kr] 4d10 5s2 5p4",
+      "discoverer": "弗朗茨-约瑟夫·穆勒·冯·赖兴施泰因",
+      "yearDiscovered": 1782,
+      "description": "碲是一种银白色的类金属，具有金属光泽。它是半导体材料的重要成分，也用于合金制造和太阳能电池。碲化合物有特殊气味。"
+    },
+    "I": {
+      "category": "卤素",
+      "meltingPoint": "113.7 °C",
+      "boilingPoint": "184.3 °C",
+      "atomicRadius": "115 pm",
+      "electronConfig": "[Kr] 4d10 5s2 5p5",
+      "discoverer": "贝尔纳·库尔图瓦",
+      "yearDiscovered": 1811,
+      "description": "碘是一种紫黑色固体，加热时升华产生紫色蒸气。它是人体必需的微量元素，用于消毒剂、造影剂和甲状腺激素合成。"
+    },
+    "Xe": {
+      "category": "稀有气体",
+      "meltingPoint": "-111.75 °C",
+      "boilingPoint": "-108.12 °C",
+      "atomicRadius": "108 pm",
+      "electronConfig": "[Kr] 4d10 5s2 5p6",
+      "discoverer": "威廉·拉姆齐和莫里斯·特拉弗斯",
+      "yearDiscovered": 1898,
+      "description": "氙是一种无色、无味、惰性的稀有气体。用于闪光灯、离子推进器和麻醉剂。它是第一个被发现具有真正化合物性质的稀有气体。"
+    },
+    "Cs": {
+      "category": "碱金属",
+      "meltingPoint": "28.44 °C",
+      "boilingPoint": "671 °C",
+      "atomicRadius": "265 pm",
+      "electronConfig": "[Xe] 6s1",
+      "discoverer": "罗伯特·本生和古斯塔夫·基尔霍夫",
+      "yearDiscovered": 1860,
+      "description": "铯是一种柔软的金色碱金属，在室温下呈液态。具有极高的化学反应活性，用于原子钟、光电池和火箭推进剂。"
+    },
+    "Ba": {
+      "category": "碱土金属",
+      "meltingPoint": "727 °C",
+      "boilingPoint": "1897 °C",
+      "atomicRadius": "222 pm",
+      "electronConfig": "[Xe] 6s²",
+      "discoverer": "卡尔·威廉·舍勒",
+      "yearDiscovered": 1772,
+      "description": "钡是一种柔软的银白色金属，化学性质活泼，易与氧和水反应。主要用于制造合金和化合物，如硫酸钡用于X射线造影剂。"
+    },
+    "La": {
+      "category": "镧系元素",
+      "meltingPoint": "920 °C",
+      "boilingPoint": "3464 °C",
+      "atomicRadius": "187 pm",
+      "electronConfig": "[Xe] 5d¹ 6s²",
+      "discoverer": "卡尔·古斯塔夫·莫桑德尔",
+      "yearDiscovered": 1839,
+      "description": "镧是一种柔软的银白色金属，是第一个被发现的镧系元素。主要用于制造镍氢电池、光学玻璃和催化剂。"
+    },
+    "Ce": {
+      "category": "镧系元素",
+      "meltingPoint": "795 °C",
+      "boilingPoint": "3443 °C",
+      "atomicRadius": "181.8 pm",
+      "electronConfig": "[Xe] 4f¹ 5d¹ 6s²",
+      "discoverer": "马丁·克拉普罗特",
+      "yearDiscovered": 1803,
+      "description": "铈是最丰富的稀土元素之一，具有多种氧化态。用于制造自清洁玻璃、催化剂和抛光粉。"
+    },
+    "Pr": {
+      "category": "镧系元素",
+      "meltingPoint": "935 °C",
+      "boilingPoint": "3520 °C",
+      "atomicRadius": "182 pm",
+      "electronConfig": "[Xe] 4f³ 6s²",
+      "discoverer": "卡尔·奥尔·冯·韦尔斯巴赫",
+      "yearDiscovered": 1885,
+      "description": "镨是一种银白色金属，用于制造永磁体、激光材料和有色玻璃。其化合物具有独特的绿色荧光特性。"
+    },
+    "Nd": {
+      "category": "镧系元素",
+      "meltingPoint": "1024 °C",
+      "boilingPoint": "3074 °C",
+      "atomicRadius": "181 pm",
+      "electronConfig": "[Xe] 4f⁴ 6s²",
+      "discoverer": "卡尔·奥尔·冯·韦尔斯巴赫",
+      "yearDiscovered": 1885,
+      "description": "钕是制造强力永磁体的关键材料，也用于激光器和玻璃着色。其磁性能在现代电子设备中至关重要。"
+    },
+    "Pm": {
+      "category": "镧系金属",
+      "meltingPoint": "1042 °C",
+      "boilingPoint": "3000 °C",
+      "atomicRadius": "183 pm",
+      "electronConfig": "[Xe] 4f⁵ 6s²",
+      "discoverer": "雅各布·A·马林斯基、劳伦斯·E·格兰丹宁、查尔斯·D·科里尔",
+      "yearDiscovered": 1945,
+      "description": "钷是一种放射性稀土金属，自然界中极为稀少，主要通过核反应人工合成。具有银白色金属光泽，化学性质活泼，主要用于研究和小型核电池。"
+    },
+    "Sm": {
+      "category": "镧系金属",
+      "meltingPoint": "1072 °C",
+      "boilingPoint": "1900 °C",
+      "atomicRadius": "180 pm",
+      "electronConfig": "[Xe] 4f⁶ 6s²",
+      "discoverer": "保罗·埃米尔·勒科克·德布瓦博德兰",
+      "yearDiscovered": 1879,
+      "description": "钐是一种中等硬度的银色金属，具有典型的稀土金属特性。在空气中会缓慢氧化，用于永磁体、激光材料和核反应控制棒。"
+    },
+    "Eu": {
+      "category": "镧系金属",
+      "meltingPoint": "822 °C",
+      "boilingPoint": "1529 °C",
+      "atomicRadius": "180 pm",
+      "electronConfig": "[Xe] 4f⁷ 6s²",
+      "discoverer": "欧仁·德马塞",
+      "yearDiscovered": 1896,
+      "description": "铕是最活泼的稀土金属之一，在空气中迅速氧化。具有银白色光泽，用于彩色电视荧光粉、激光材料和核反应控制材料。"
+    },
+    "Gd": {
+      "category": "镧系金属",
+      "meltingPoint": "1312 °C",
+      "boilingPoint": "3273 °C",
+      "atomicRadius": "180 pm",
+      "electronConfig": "[Xe] 4f⁷ 5d¹ 6s²",
+      "discoverer": "让·夏尔·加利萨·德马里尼亚克",
+      "yearDiscovered": 1880,
+      "description": "钆是一种具有超常磁性的银色金属，在室温下具有铁磁性。用于MRI造影剂、核反应控制棒和磁制冷技术。"
+    },
+    "Tb": {
+      "category": "镧系金属",
+      "meltingPoint": "1356 °C",
+      "boilingPoint": "3230 °C",
+      "atomicRadius": "177 pm",
+      "electronConfig": "[Xe] 4f⁹ 6s²",
+      "discoverer": "卡尔·古斯塔夫·莫桑德",
+      "yearDiscovered": 1843,
+      "description": "铽是一种柔软、可延展的银灰色金属，具有强磁性和荧光特性。用于固态器件、激光材料和荧光粉，特别是在绿色磷光体中。"
+    },
+    "Dy": {
+      "category": "镧系金属",
+      "meltingPoint": "1412 °C",
+      "boilingPoint": "2567 °C",
+      "atomicRadius": "178 pm",
+      "electronConfig": "[Xe] 4f¹⁰ 6s²",
+      "discoverer": "保罗·埃米尔·勒科克·德布瓦博德兰",
+      "yearDiscovered": 1886,
+      "description": "镝是一种银白色稀土金属，具有高磁化率，常用于制造激光材料和核反应堆控制棒。"
+    },
+    "Ho": {
+      "category": "镧系金属",
+      "meltingPoint": "1474 °C",
+      "boilingPoint": "2695 °C",
+      "atomicRadius": "176 pm",
+      "electronConfig": "[Xe] 4f¹¹ 6s²",
+      "discoverer": "马克·德拉方丹和雅克·路易·索雷",
+      "yearDiscovered": 1878,
+      "description": "钬是一种柔软的银白色金属，具有最高的磁矩，常用于制造磁性材料和固态激光器。"
+    },
+    "Er": {
+      "category": "镧系金属",
+      "meltingPoint": "1529 °C",
+      "boilingPoint": "2868 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Xe] 4f¹² 6s²",
+      "discoverer": "卡尔·古斯塔夫·莫桑德",
+      "yearDiscovered": 1843,
+      "description": "铒是一种银灰色稀土金属，具有良好的中子吸收能力，广泛用于光纤放大器和核工业。"
+    },
+    "Tm": {
+      "category": "镧系金属",
+      "meltingPoint": "1545 °C",
+      "boilingPoint": "1950 °C",
+      "atomicRadius": "174 pm",
+      "electronConfig": "[Xe] 4f¹³ 6s²",
+      "discoverer": "佩尔·特奥多尔·克利夫",
+      "yearDiscovered": 1879,
+      "description": "铥是最稀有的稀土元素之一，具有蓝绿色荧光特性，主要用于便携式X射线设备和激光材料。"
+    },
+    "Yb": {
+      "category": "镧系金属",
+      "meltingPoint": "824 °C",
+      "boilingPoint": "1196 °C",
+      "atomicRadius": "193 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 6s²",
+      "discoverer": "让·夏尔·加利萨·德马里尼亚克",
+      "yearDiscovered": 1878,
+      "description": "镱是一种柔软、可延展的银白色金属，具有特殊的光电性能，常用于原子钟和应力测量设备。"
+    },
+    "Lu": {
+      "category": "镧系金属",
+      "meltingPoint": "1663 °C",
+      "boilingPoint": "3402 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹ 6s²",
+      "discoverer": "乔治·德·马里尼亚克",
+      "yearDiscovered": 1907,
+      "description": "镥是一种银白色的稀土金属，化学性质稳定，在自然界中含量稀少。主要用于研究领域，如催化剂和某些特殊合金。"
+    },
+    "Hf": {
+      "category": "过渡金属",
+      "meltingPoint": "2233 °C",
+      "boilingPoint": "4603 °C",
+      "atomicRadius": "159 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d² 6s²",
+      "discoverer": "德克·科斯特和乔治·德·赫维西",
+      "yearDiscovered": 1923,
+      "description": "铪是一种高熔点、耐腐蚀的过渡金属，常用于核反应堆的控制棒和高温合金。其化学性质与锆相似。"
+    },
+    "Ta": {
+      "category": "过渡金属",
+      "meltingPoint": "3017 °C",
+      "boilingPoint": "5458 °C",
+      "atomicRadius": "146 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d³ 6s²",
+      "discoverer": "安德斯·古斯塔夫·埃克贝里",
+      "yearDiscovered": 1802,
+      "description": "钽是一种高密度、高熔点的金属，具有极强的耐腐蚀性。主要用于电子元件、手术植入物和化工设备。"
+    },
+    "W": {
+      "category": "过渡金属",
+      "meltingPoint": "3422 °C",
+      "boilingPoint": "5555 °C",
+      "atomicRadius": "139 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d⁴ 6s²",
+      "discoverer": "胡安·何塞·埃尔胡亚尔和福斯托·德尔胡亚尔",
+      "yearDiscovered": 1783,
+      "description": "钨是所有金属中熔点最高的，广泛用于灯丝、合金和切削工具。其高密度也使其成为穿甲弹的理想材料。"
+    },
+    "Re": {
+      "category": "过渡金属",
+      "meltingPoint": "3186 °C",
+      "boilingPoint": "5596 °C",
+      "atomicRadius": "137 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d⁵ 6s²",
+      "discoverer": "沃尔特·诺达克、伊达·诺达克和奥托·伯格",
+      "yearDiscovered": 1925,
+      "description": "铼是地球上最稀有的元素之一，具有极高的熔点和强度。主要用于高温合金、催化剂和电子元件。"
+    },
+    "Os": {
+      "category": "过渡金属",
+      "meltingPoint": "3033 °C",
+      "boilingPoint": "5012 °C",
+      "atomicRadius": "135 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d⁶ 6s²",
+      "discoverer": "史密森·特南特",
+      "yearDiscovered": 1803,
+      "description": "锇是一种坚硬、易碎的蓝白色过渡金属，属于铂族元素。它是已知密度最大的天然元素，主要用于合金中以增加硬度和耐用性。"
+    },
+    "Ir": {
+      "category": "过渡金属",
+      "meltingPoint": "2446 °C",
+      "boilingPoint": "4428 °C",
+      "atomicRadius": "136 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d⁷ 6s²",
+      "discoverer": "史密森·特南特",
+      "yearDiscovered": 1803,
+      "description": "铱是一种非常坚硬、易碎的银白色过渡金属，属于铂族元素。它具有极高的耐腐蚀性，即使在高温下也是如此，常用于制造耐高温设备。"
+    },
+    "Pt": {
+      "category": "过渡金属",
+      "meltingPoint": "1768.3 °C",
+      "boilingPoint": "3825 °C",
+      "atomicRadius": "139 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d⁹ 6s¹",
+      "discoverer": "安东尼奥·乌略亚",
+      "yearDiscovered": 1735,
+      "description": "铂是一种银白色、可延展的过渡金属，具有优异的耐腐蚀性和催化性能。它广泛用于珠宝、实验室设备和汽车催化转化器。"
+    },
+    "Au": {
+      "category": "过渡金属",
+      "meltingPoint": "1064.18 °C",
+      "boilingPoint": "2856 °C",
+      "atomicRadius": "144 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s¹",
+      "discoverer": "古代人类",
+      "yearDiscovered": -3000,
+      "description": "金是一种柔软、可延展的黄色贵金属，具有极高的导电性和导热性。它自古以来就被用于货币、珠宝和装饰品，也用于电子工业。"
+    },
+    "Hg": {
+      "category": "过渡金属",
+      "meltingPoint": "-38.83 °C",
+      "boilingPoint": "356.73 °C",
+      "atomicRadius": "151 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s²",
+      "discoverer": "古代人类",
+      "yearDiscovered": -1500,
+      "description": "汞是唯一在常温下呈液态的金属元素，银白色，具有高密度和表面张力。它用于温度计、气压计和某些电子设备，但因其毒性使用受到限制。"
+    },
+    "Tl": {
+      "category": "金属",
+      "meltingPoint": "304 °C",
+      "boilingPoint": "1473 °C",
+      "atomicRadius": "170 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹",
+      "discoverer": "威廉·克鲁克斯",
+      "yearDiscovered": 1861,
+      "description": "铊是一种柔软的灰色贫金属，具有高毒性和低熔点。它主要用于电子设备和光学玻璃，但因其毒性，应用受到严格限制。"
+    },
+    "Pb": {
+      "category": "金属",
+      "meltingPoint": "327.5 °C",
+      "boilingPoint": "1749 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²",
+      "discoverer": "古人",
+      "yearDiscovered": -3000,
+      "description": "铅是一种重而柔软的蓝灰色金属，具有延展性和耐腐蚀性。它广泛用于电池、防护材料和建筑，但由于其毒性，许多应用已被限制。"
+    },
+    "Bi": {
+      "category": "金属",
+      "meltingPoint": "271.5 °C",
+      "boilingPoint": "1564 °C",
+      "atomicRadius": "160 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³",
+      "discoverer": "克劳德·弗朗索瓦·若弗鲁瓦",
+      "yearDiscovered": 1753,
+      "description": "铋是一种脆性金属，具有粉红色调，是毒性最低的重金属之一。它用于医药、化妆品和低熔点合金，具有独特的抗磁性。"
+    },
+    "Po": {
+      "category": "类金属",
+      "meltingPoint": "254 °C",
+      "boilingPoint": "962 °C",
+      "atomicRadius": "190 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴",
+      "discoverer": "玛丽·居里和皮埃尔·居里",
+      "yearDiscovered": 1898,
+      "description": "钋是一种稀有且高度放射性的元素，具有银灰色外观。它主要用于消除静电和核电池，但由于其极强的放射性，处理需极端谨慎。"
+    },
+    "At": {
+      "category": "类金属",
+      "meltingPoint": "302 °C",
+      "boilingPoint": "337 °C",
+      "atomicRadius": "127 pm",
+      "electronConfig": "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵",
+      "discoverer": "戴尔·R·科森、肯尼斯·罗斯·麦肯齐和埃米利奥·塞格雷",
+      "yearDiscovered": 1940,
+      "description": "砹是最稀有的天然元素之一，具有极强的放射性。它主要用于科学研究，特别是放射治疗研究，但由于其极短的半衰期，应用非常有限。"
+    },
+    "Rn": {
+      "category": "稀有气体",
+      "meltingPoint": "-71 °C",
+      "boilingPoint": "-61.7 °C",
+      "atomicRadius": "120 pm",
+      "electronConfig": "[Xe] 4f14 5d10 6s2 6p6",
+      "discoverer": "弗里德里希·恩斯特·多恩",
+      "yearDiscovered": 1900,
+      "description": "氡是一种无色、无味的放射性稀有气体，是地壳中铀和钍衰变的产物。它是已知最重的气体之一，具有高度放射性，对人体健康有害。"
+    },
+    "Fr": {
+      "category": "碱金属",
+      "meltingPoint": "27 °C",
+      "boilingPoint": "677 °C",
+      "atomicRadius": "270 pm",
+      "electronConfig": "[Rn] 7s1",
+      "discoverer": "玛格丽特·佩雷",
+      "yearDiscovered": 1939,
+      "description": "钫是最不稳定的碱金属，具有极强的放射性，半衰期极短。它是自然界中第二稀有的元素，仅以微量存在于铀和钍矿石中。"
+    },
+    "Ra": {
+      "category": "碱土金属",
+      "meltingPoint": "700 °C",
+      "boilingPoint": "1737 °C",
+      "atomicRadius": "215 pm",
+      "electronConfig": "[Rn] 7s2",
+      "discoverer": "玛丽·居里和皮埃尔·居里",
+      "yearDiscovered": 1898,
+      "description": "镭是一种高放射性碱土金属，发出淡蓝色光芒。它是铀衰变链的产物，曾用于发光涂料和癌症治疗，但因放射性危害现已限制使用。"
+    },
+    "Ac": {
+      "category": "锕系元素",
+      "meltingPoint": "1050 °C",
+      "boilingPoint": "3200 °C",
+      "atomicRadius": "195 pm",
+      "electronConfig": "[Rn] 6d1 7s2",
+      "discoverer": "安德烈-路易·德比尔纳",
+      "yearDiscovered": 1899,
+      "description": "锕是第一个锕系元素，具有银白色金属光泽。它是天然放射性元素，存在于铀矿石中，半衰期较长，主要用于中子源和科学研究。"
+    },
+    "Th": {
+      "category": "锕系元素",
+      "meltingPoint": "1750 °C",
+      "boilingPoint": "4788 °C",
+      "atomicRadius": "180 pm",
+      "electronConfig": "[Rn] 6d2 7s2",
+      "discoverer": "永斯·雅各布·贝采利乌斯",
+      "yearDiscovered": 1828,
+      "description": "钍是一种弱放射性金属，储量比铀更丰富。它是潜在的核燃料来源，其氧化物曾用于煤气灯罩。钍在高温下具有良好的机械性能。"
+    },
+    "Pa": {
+      "category": "锕系金属",
+      "meltingPoint": "1568 °C",
+      "boilingPoint": "4027 °C",
+      "atomicRadius": "180 pm",
+      "electronConfig": "[Rn] 5f² 6d¹ 7s²",
+      "discoverer": "奥托·哈恩和莉泽·迈特纳",
+      "yearDiscovered": 1917,
+      "description": "镤是一种放射性金属元素，属于锕系元素。它在自然界中极为稀少，主要存在于铀矿石中。镤的化学性质与钽相似，具有高密度和强放射性。"
+    },
+    "U": {
+      "category": "锕系金属",
+      "meltingPoint": "1132 °C",
+      "boilingPoint": "4131 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Rn] 5f³ 6d¹ 7s²",
+      "discoverer": "马丁·克拉普罗特",
+      "yearDiscovered": 1789,
+      "description": "铀是一种重要的放射性金属元素，广泛用于核能发电和核武器。它具有高密度和强放射性，自然界中主要以铀-238和铀-235同位素存在。"
+    },
+    "Np": {
+      "category": "锕系金属",
+      "meltingPoint": "644 °C",
+      "boilingPoint": "3902 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Rn] 5f⁴ 6d¹ 7s²",
+      "discoverer": "埃德温·麦克米伦和菲利普·艾贝尔森",
+      "yearDiscovered": 1940,
+      "description": "镎是第一个合成的超铀元素，具有强放射性。它在自然界中几乎不存在，主要通过人工核反应合成。镎的化学性质与铀和钚相似。"
+    },
+    "Pu": {
+      "category": "锕系金属",
+      "meltingPoint": "639.4 °C",
+      "boilingPoint": "3228 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Rn] 5f⁶ 7s²",
+      "discoverer": "格伦·西博格团队",
+      "yearDiscovered": 1940,
+      "description": "钚是一种重要的放射性元素，广泛用于核武器和核反应堆。它具有多种同位素，其中钚-239是最重要的裂变材料。钚的毒性极高，需严格防护。"
+    },
+    "Am": {
+      "category": "锕系金属",
+      "meltingPoint": "1176 °C",
+      "boilingPoint": "2607 °C",
+      "atomicRadius": "175 pm",
+      "electronConfig": "[Rn] 5f⁷ 7s²",
+      "discoverer": "格伦·西博格团队",
+      "yearDiscovered": 1944,
+      "description": "镅是一种人造放射性元素，主要用于烟雾探测器和中子源。它在自然界中不存在，通过核反应堆中钚的中子俘获产生。镅的放射性较强，需谨慎处理。"
+    },
+    "Cm": {
+      "category": "锕系元素",
+      "meltingPoint": "1340 °C",
+      "boilingPoint": "3110 °C",
+      "atomicRadius": "174 pm",
+      "electronConfig": "[Rn] 5f7 6d1 7s2",
+      "discoverer": "格伦·西博格",
+      "yearDiscovered": 1944,
+      "description": "锔是一种放射性超铀元素，以居里夫妇命名。主要用于科研，在核反应堆中作为α粒子源。"
+    },
+    "Bk": {
+      "category": "锕系元素",
+      "meltingPoint": "986 °C",
+      "boilingPoint": "2627 °C",
+      "atomicRadius": "170 pm",
+      "electronConfig": "[Rn] 5f9 7s2",
+      "discoverer": "格伦·西博格",
+      "yearDiscovered": 1949,
+      "description": "锫是一种人造放射性元素，以加州伯克利命名。主要用于基础研究，产量极微。"
+    },
+    "Cf": {
+      "category": "锕系元素",
+      "meltingPoint": "900 °C",
+      "boilingPoint": "1470 °C",
+      "atomicRadius": "186 pm",
+      "electronConfig": "[Rn] 5f10 7s2",
+      "discoverer": "劳伦斯伯克利国家实验室",
+      "yearDiscovered": 1950,
+      "description": "锎是人工合成的超铀元素，具有极高放射性。1克锎每秒释放2.31亿个中子，用于中子活化分析。"
+    },
+    "Es": {
+      "category": "锕系元素",
+      "meltingPoint": "860 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "186 pm",
+      "electronConfig": "[Rn] 5f11 7s2",
+      "discoverer": "阿尔伯特·吉奥索",
+      "yearDiscovered": 1952,
+      "description": "锿是第99号元素，首次在氢弹爆炸残骸中发现。极难制备，主要用于核物理研究。"
+    },
+    "Fm": {
+      "category": "锕系元素",
+      "meltingPoint": "1527 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "194 pm",
+      "electronConfig": "[Rn] 5f12 7s2",
+      "discoverer": "阿尔伯特·吉奥索",
+      "yearDiscovered": 1952,
+      "description": "镄是最重的可称量元素之一，以恩里科·费米命名。仅微量存在，用于基础科学研究。"
+    },
+    "Md": {
+      "category": "锕系",
+      "meltingPoint": "827 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "未知",
+      "electronConfig": "[Rn] 5f¹³ 7s²",
+      "discoverer": "阿尔伯特·吉奥索等人",
+      "yearDiscovered": 1955,
+      "description": "钔是一种人工合成的放射性元素，以门捷列夫命名。它极不稳定，半衰期很短，主要用于科学研究。"
+    },
+    "No": {
+      "category": "锕系",
+      "meltingPoint": "827 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "未知",
+      "electronConfig": "[Rn] 5f¹⁴ 7s²",
+      "discoverer": "阿尔伯特·吉奥索等人",
+      "yearDiscovered": 1958,
+      "description": "锘是一种人工合成的放射性元素，以诺贝尔命名。它极其稀有且不稳定，主要用于核物理研究。"
+    },
+    "Lr": {
+      "category": "锕系",
+      "meltingPoint": "1627 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "未知",
+      "electronConfig": "[Rn] 5f¹⁴ 7s² 7p¹",
+      "discoverer": "阿尔伯特·吉奥索等人",
+      "yearDiscovered": 1961,
+      "description": "铹是一种人工合成的放射性元素，以劳伦斯命名。它是锕系最后一个元素，极其不稳定且难以研究。"
+    },
+    "Rf": {
+      "category": "过渡金属",
+      "meltingPoint": "2100 °C",
+      "boilingPoint": "未知",
+      "atomicRadius": "未知",
+      "electronConfig": "[Rn] 5f¹⁴ 6d² 7s²",
+      "discoverer": "苏联杜布纳联合核研究所",
+      "yearDiscovered": 1964,
+      "description": "鑪是一种人工合成的放射性元素，以卢瑟福命名。它是第4族元素，化学性质类似铪，但极不稳定。"
+    },
+    "Db": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "未知",
+      "electronConfig": "[Rn] 5f¹⁴ 6d³ 7s²",
+      "discoverer": "苏联杜布纳联合核研究所",
+      "yearDiscovered": 1967,
+      "description": "𨧀是一种人工合成的放射性元素，以尼尔斯·玻尔命名。它是第5族元素，化学性质类似钽，但极难研究。"
+    },
+    "Sg": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "132 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d⁴ 7s²",
+      "discoverer": "劳伦斯伯克利国家实验室",
+      "yearDiscovered": 1974,
+      "description": "𨭎是一种人工合成的放射性元素，属于锕系后元素。它的化学性质与钨相似，但研究极为有限，主要用于核物理研究。"
+    },
+    "Bh": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "128 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d⁵ 7s²",
+      "discoverer": "杜布纳联合核研究所",
+      "yearDiscovered": 1976,
+      "description": "𨨏是一种高度不稳定的超铀元素，化学性质预计与铼相似。由于极短的半衰期，其物理性质难以测定，主要用于基础科学研究。"
+    },
+    "Hs": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "126 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d⁶ 7s²",
+      "discoverer": "杜布纳联合核研究所",
+      "yearDiscovered": 1984,
+      "description": "𨭆是第108号元素，预计具有与锇相似的化学性质。作为超重元素，其存在时间极短，研究仅限于加速器实验中的瞬时检测。"
+    },
+    "Mt": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "122 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d⁷ 7s²",
+      "discoverer": "重离子研究所",
+      "yearDiscovered": 1982,
+      "description": "�是第109号元素，预计化学性质与铱相似。由于产量极少且半衰期极短，其物理化学性质主要通过理论计算预测。"
+    },
+    "Ds": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "118 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d⁸ 7s²",
+      "discoverer": "重离子研究所",
+      "yearDiscovered": 1994,
+      "description": "鐽是第110号元素，属于超重元素。其化学性质可能与铂族金属相似，但因极不稳定的特性，实际应用仅限于核物理研究领域。"
+    },
+    "Rg": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约 121 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s¹",
+      "discoverer": "德国重离子研究中心",
+      "yearDiscovered": 1994,
+      "description": "𬬭是一种人工合成的放射性元素，属于第11族元素。它的化学性质预计与铜、银和金相似，但由于其极高的放射性，研究非常有限。"
+    },
+    "Cn": {
+      "category": "过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "约 357 °C（预测）",
+      "atomicRadius": "约 122 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s²",
+      "discoverer": "德国重离子研究中心",
+      "yearDiscovered": 1996,
+      "description": "鎶是一种人工合成的超重元素，属于第12族。它的化学性质预计与汞相似，但半衰期极短，难以进行详细的化学研究。"
+    },
+    "Nh": {
+      "category": "后过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约 170 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹",
+      "discoverer": "俄罗斯杜布纳联合核研究所",
+      "yearDiscovered": 2003,
+      "description": "鉨是一种人工合成的超重元素，属于第13族。它的化学性质预计与铊相似，但由于其极短的半衰期，实验数据非常有限。"
+    },
+    "Fl": {
+      "category": "后过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约 180 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²",
+      "discoverer": "俄罗斯杜布纳联合核研究所",
+      "yearDiscovered": 1998,
+      "description": "鈇是一种人工合成的超重元素，属于第14族。它的化学性质预计与铅相似，但由于其极短的半衰期和高放射性，研究非常困难。"
+    },
+    "Mc": {
+      "category": "后过渡金属",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约 187 pm",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³",
+      "discoverer": "俄罗斯杜布纳联合核研究所",
+      "yearDiscovered": 2003,
+      "description": "镆是一种人工合成的超重元素，属于第15族。它的化学性质预计与铋相似，但由于其极短的半衰期，实验数据极其有限。"
+    },
+    "Lv": {
+      "category": "超重元素",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约183 pm（预测值）",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴",
+      "discoverer": "杜布纳联合核研究所和劳伦斯利弗莫尔国家实验室",
+      "yearDiscovered": 2000,
+      "description": "鉝（Lv）是一种人工合成的超重元素，具有极高的放射性。其化学性质预计与氧族元素相似，但由于极短的半衰期（最稳定同位素Lv-293的半衰期约53毫秒），实际研究非常困难。"
+    },
+    "Ts": {
+      "category": "超重元素",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约165 pm（预测值）",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵",
+      "discoverer": "杜布纳联合核研究所和劳伦斯利弗莫尔国家实验室",
+      "yearDiscovered": 2010,
+      "description": "鿬（Ts）是第117号元素，属于卤族但表现出特殊性质。其最稳定同位素Ts-294的半衰期仅78毫秒。理论预测其可能呈金属态而非典型卤素的分子形态，这反映了超重元素的相对论效应。"
+    },
+    "Og": {
+      "category": "超重元素",
+      "meltingPoint": "未知",
+      "boilingPoint": "未知",
+      "atomicRadius": "约152 pm（预测值）",
+      "electronConfig": "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶",
+      "discoverer": "杜布纳联合核研究所和劳伦斯利弗莫尔国家实验室",
+      "yearDiscovered": 2006,
+      "description": "鿫（Og）是首个合成的第18族气体元素，但理论预测其在标准条件下可能呈固态。其最稳定同位素Og-294的半衰期仅0.69毫秒。作为超重元素，其化学性质可能偏离典型惰性气体规律。"
+    }
+  }
+}
             }
-        }
+        };
 
         // 加载元素详情
         function loadElementDetails(elementSymbol) {
             const element = elementsData.find(e => e.symbol === elementSymbol);
+            const details = configData.elements[elementSymbol];
             
             if (!element) return;
             
@@ -374,59 +1538,26 @@
             document.getElementById('detailAtomicNumber').textContent = element.atomicNumber;
             document.getElementById('detailAtomicWeight').textContent = element.atomicWeight;
             
-            // 添加错误处理和日志记录，以帮助诊断问题
-            console.log("正在加载元素详情:", elementSymbol);
-            
-            if (configData && configData.elements) {
-                console.log("可用的元素:", Object.keys(configData.elements));
+            // 如果有详细信息，则填充
+            if (details) {
+                document.getElementById('detailCategory').textContent = details.category;
+                document.getElementById('detailMeltingPoint').textContent = details.meltingPoint;
+                document.getElementById('detailBoilingPoint').textContent = details.boilingPoint;
+                document.getElementById('detailAtomicRadius').textContent = details.atomicRadius;
+                document.getElementById('detailElectronConfig').textContent = details.electronConfig;
+                document.getElementById('detailDiscoverer').textContent = details.discoverer;
+                document.getElementById('detailYearDiscovered').textContent = details.yearDiscovered;
+                document.getElementById('detailDescription').textContent = details.description;
             } else {
-                console.log("配置数据尚未加载或格式不正确");
-            }
-            
-            // 如果已经加载了配置文件，则填充详细信息
-            if (configData && configData.elements && configData.elements[elementSymbol]) {
-                const details = configData.elements[elementSymbol];
-                console.log("找到元素详情:", details);
-                
-                // 确保使用正确的属性名称
-                document.getElementById('detailCategory').textContent = details.category || "暂无数据";
-                document.getElementById('detailMeltingPoint').textContent = details.meltingPoint || "暂无数据";
-                document.getElementById('detailBoilingPoint').textContent = details.boilingPoint || "暂无数据";
-                document.getElementById('detailAtomicRadius').textContent = details.atomicRadius || "暂无数据";
-                document.getElementById('detailElectronConfig').textContent = details.electronConfig || "暂无数据";
-                document.getElementById('detailDiscoverer').textContent = details.discoverer || "暂无数据";
-                document.getElementById('detailYearDiscovered').textContent = details.yearDiscovered || "暂无数据";
-                document.getElementById('detailDescription').textContent = details.description || "暂无描述";
-            } else {
-                // 没有详细信息或配置尚未加载
-                document.getElementById('detailCategory').textContent = "加载中...";
-                document.getElementById('detailMeltingPoint').textContent = "加载中...";
-                document.getElementById('detailBoilingPoint').textContent = "加载中...";
-                document.getElementById('detailAtomicRadius').textContent = "加载中...";
-                document.getElementById('detailElectronConfig').textContent = "加载中...";
-                document.getElementById('detailDiscoverer').textContent = "加载中...";
-                document.getElementById('detailYearDiscovered').textContent = "加载中...";
-                document.getElementById('detailDescription').textContent = "详细信息加载中，请稍候...";
-                
-                // 如果配置数据尚未加载，则尝试加载
-                if (!configData) {
-                    loadConfigFromServer().then(() => {
-                        // 配置加载完成后重新加载元素详情
-                        if (configData && configData.elements && configData.elements[elementSymbol]) {
-                            loadElementDetails(elementSymbol);
-                        } else {
-                            // 配置中没有该元素的详细信息
-                            document.getElementById('detailCategory').textContent = "暂无数据";
-                            document.getElementById('detailMeltingPoint').textContent = "暂无数据";
-                            document.getElementById('detailBoilingPoint').textContent = "暂无数据";
-                            document.getElementById('detailAtomicRadius').textContent = "暂无数据";
-                            document.getElementById('detailElectronConfig').textContent = "暂无数据";
-                            document.getElementById('detailDiscoverer').textContent = "暂无数据";
-                            document.getElementById('detailYearDiscovered').textContent = "暂无数据";
-                            document.getElementById('detailDescription').textContent = "此元素暂无详细信息。";
-                        }
-                    });
-                }
+                // 没有详细信息时，显示提示
+                document.getElementById('detailCategory').textContent = "暂无数据";
+                document.getElementById('detailMeltingPoint').textContent = "暂无数据";
+                document.getElementById('detailBoilingPoint').textContent = "暂无数据";
+                document.getElementById('detailAtomicRadius').textContent = "暂无数据";
+                document.getElementById('detailElectronConfig').textContent = "暂无数据";
+                document.getElementById('detailDiscoverer').textContent = "暂无数据";
+                document.getElementById('detailYearDiscovered').textContent = "暂无数据";
+                document.getElementById('detailDescription').textContent = "暂无详细信息。";
             }
             
             document.getElementById('elementDetails').classList.remove('hidden');
@@ -436,6 +1567,12 @@
         document.getElementById('closeDetails').addEventListener('click', () => {
             document.getElementById('elementDetails').classList.add('hidden');
         });
+
+        // 模拟从服务器加载config.json
+        function loadConfigFromServer() {
+            console.log("在实际应用中，这里会从服务器加载config.json");
+            // 示例：fetch('/config.json').then(...)
+        }
 
         // 页面加载时执行
         document.addEventListener('DOMContentLoaded', () => {
