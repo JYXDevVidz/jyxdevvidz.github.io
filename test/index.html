@@ -1,0 +1,447 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素周期表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .element {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .element:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        #periodicTable {
+            display: grid;
+            grid-template-columns: repeat(18, minmax(60px, 1fr));
+            grid-gap: 4px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .category-nonmetal { background-color: rgb(191, 231, 153); }
+        .category-noble-gas { background-color: rgb(185, 219, 255); }
+        .category-alkali-metal { background-color: rgb(255, 183, 183); }
+        .category-alkaline-earth { background-color: rgb(255, 222, 173); }
+        .category-metalloid { background-color: rgb(204, 255, 204); }
+        .category-halogen { background-color: rgb(255, 255, 179); }
+        .category-transition-metal { background-color: rgb(255, 204, 153); }
+        .category-post-transition { background-color: rgb(204, 204, 255); }
+        .category-lanthanide { background-color: rgb(255, 191, 255); }
+        .category-actinide { background-color: rgb(255, 153, 204); }
+        .category-unknown { background-color: rgb(235, 235, 235); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-center my-6 text-gray-800">元素周期表</h1>
+        
+        <!-- 页面加载状态指示器 -->
+        <div id="loadingIndicator" class="fixed top-0 left-0 right-0 bg-blue-500 text-white text-center py-2 z-50">
+            加载元素数据中...
+        </div>
+        
+        <!-- 图例 -->
+        <div class="flex flex-wrap justify-center gap-3 mb-6">
+            <div class="flex items-center"><div class="w-4 h-4 category-nonmetal mr-1"></div>非金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-noble-gas mr-1"></div>惰性气体</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-alkali-metal mr-1"></div>碱金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-alkaline-earth mr-1"></div>碱土金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-metalloid mr-1"></div>类金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-halogen mr-1"></div>卤素</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-transition-metal mr-1"></div>过渡金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-post-transition mr-1"></div>主族金属</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-lanthanide mr-1"></div>镧系元素</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-actinide mr-1"></div>锕系元素</div>
+            <div class="flex items-center"><div class="w-4 h-4 category-unknown mr-1"></div>未知</div>
+        </div>
+        
+        <!-- 元素周期表容器 -->
+        <div class="relative overflow-auto p-2">
+            <div id="periodicTable"></div>
+        </div>
+
+        <!-- 元素详情卡片 -->
+        <div id="elementDetails" class="hidden bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto mt-6">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 id="detailSymbol" class="text-4xl font-bold"></h2>
+                    <h3 id="detailName" class="text-2xl"></h3>
+                </div>
+                <div id="detailAtomicNumber" class="text-3xl font-bold text-gray-500"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">原子量</p>
+                    <p id="detailAtomicWeight" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">分类</p>
+                    <p id="detailCategory" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">熔点</p>
+                    <p id="detailMeltingPoint" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">沸点</p>
+                    <p id="detailBoilingPoint" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">原子半径</p>
+                    <p id="detailAtomicRadius" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">电子结构</p>
+                    <p id="detailElectronConfig" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">发现者</p>
+                    <p id="detailDiscoverer" class="font-medium"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">发现年份</p>
+                    <p id="detailYearDiscovered" class="font-medium"></p>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="text-sm text-gray-500">描述</p>
+                <p id="detailDescription" class="text-sm mt-1"></p>
+            </div>
+            <button id="closeDetails" class="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded">
+                关闭
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 全部118个元素的基本数据
+        const elementsData = [
+            { symbol: "H", name: "氢", atomicNumber: 1, atomicWeight: 1.008, period: 1, group: 1, category: "nonmetal" },
+            { symbol: "He", name: "氦", atomicNumber: 2, atomicWeight: 4.0026, period: 1, group: 18, category: "noble-gas" },
+            { symbol: "Li", name: "锂", atomicNumber: 3, atomicWeight: 6.94, period: 2, group: 1, category: "alkali-metal" },
+            { symbol: "Be", name: "铍", atomicNumber: 4, atomicWeight: 9.0122, period: 2, group: 2, category: "alkaline-earth" },
+            { symbol: "B", name: "硼", atomicNumber: 5, atomicWeight: 10.81, period: 2, group: 13, category: "metalloid" },
+            { symbol: "C", name: "碳", atomicNumber: 6, atomicWeight: 12.011, period: 2, group: 14, category: "nonmetal" },
+            { symbol: "N", name: "氮", atomicNumber: 7, atomicWeight: 14.007, period: 2, group: 15, category: "nonmetal" },
+            { symbol: "O", name: "氧", atomicNumber: 8, atomicWeight: 15.999, period: 2, group: 16, category: "nonmetal" },
+            { symbol: "F", name: "氟", atomicNumber: 9, atomicWeight: 18.998, period: 2, group: 17, category: "halogen" },
+            { symbol: "Ne", name: "氖", atomicNumber: 10, atomicWeight: 20.180, period: 2, group: 18, category: "noble-gas" },
+            { symbol: "Na", name: "钠", atomicNumber: 11, atomicWeight: 22.990, period: 3, group: 1, category: "alkali-metal" },
+            { symbol: "Mg", name: "镁", atomicNumber: 12, atomicWeight: 24.305, period: 3, group: 2, category: "alkaline-earth" },
+            { symbol: "Al", name: "铝", atomicNumber: 13, atomicWeight: 26.982, period: 3, group: 13, category: "post-transition" },
+            { symbol: "Si", name: "硅", atomicNumber: 14, atomicWeight: 28.085, period: 3, group: 14, category: "metalloid" },
+            { symbol: "P", name: "磷", atomicNumber: 15, atomicWeight: 30.974, period: 3, group: 15, category: "nonmetal" },
+            { symbol: "S", name: "硫", atomicNumber: 16, atomicWeight: 32.06, period: 3, group: 16, category: "nonmetal" },
+            { symbol: "Cl", name: "氯", atomicNumber: 17, atomicWeight: 35.45, period: 3, group: 17, category: "halogen" },
+            { symbol: "Ar", name: "氩", atomicNumber: 18, atomicWeight: 39.948, period: 3, group: 18, category: "noble-gas" },
+            { symbol: "K", name: "钾", atomicNumber: 19, atomicWeight: 39.098, period: 4, group: 1, category: "alkali-metal" },
+            { symbol: "Ca", name: "钙", atomicNumber: 20, atomicWeight: 40.078, period: 4, group: 2, category: "alkaline-earth" },
+            { symbol: "Sc", name: "钪", atomicNumber: 21, atomicWeight: 44.956, period: 4, group: 3, category: "transition-metal" },
+            { symbol: "Ti", name: "钛", atomicNumber: 22, atomicWeight: 47.867, period: 4, group: 4, category: "transition-metal" },
+            { symbol: "V", name: "钒", atomicNumber: 23, atomicWeight: 50.942, period: 4, group: 5, category: "transition-metal" },
+            { symbol: "Cr", name: "铬", atomicNumber: 24, atomicWeight: 51.996, period: 4, group: 6, category: "transition-metal" },
+            { symbol: "Mn", name: "锰", atomicNumber: 25, atomicWeight: 54.938, period: 4, group: 7, category: "transition-metal" },
+            { symbol: "Fe", name: "铁", atomicNumber: 26, atomicWeight: 55.845, period: 4, group: 8, category: "transition-metal" },
+            { symbol: "Co", name: "钴", atomicNumber: 27, atomicWeight: 58.933, period: 4, group: 9, category: "transition-metal" },
+            { symbol: "Ni", name: "镍", atomicNumber: 28, atomicWeight: 58.693, period: 4, group: 10, category: "transition-metal" },
+            { symbol: "Cu", name: "铜", atomicNumber: 29, atomicWeight: 63.546, period: 4, group: 11, category: "transition-metal" },
+            { symbol: "Zn", name: "锌", atomicNumber: 30, atomicWeight: 65.38, period: 4, group: 12, category: "transition-metal" },
+            { symbol: "Ga", name: "镓", atomicNumber: 31, atomicWeight: 69.723, period: 4, group: 13, category: "post-transition" },
+            { symbol: "Ge", name: "锗", atomicNumber: 32, atomicWeight: 72.630, period: 4, group: 14, category: "metalloid" },
+            { symbol: "As", name: "砷", atomicNumber: 33, atomicWeight: 74.922, period: 4, group: 15, category: "metalloid" },
+            { symbol: "Se", name: "硒", atomicNumber: 34, atomicWeight: 78.971, period: 4, group: 16, category: "nonmetal" },
+            { symbol: "Br", name: "溴", atomicNumber: 35, atomicWeight: 79.904, period: 4, group: 17, category: "halogen" },
+            { symbol: "Kr", name: "氪", atomicNumber: 36, atomicWeight: 83.798, period: 4, group: 18, category: "noble-gas" },
+            { symbol: "Rb", name: "铷", atomicNumber: 37, atomicWeight: 85.468, period: 5, group: 1, category: "alkali-metal" },
+            { symbol: "Sr", name: "锶", atomicNumber: 38, atomicWeight: 87.62, period: 5, group: 2, category: "alkaline-earth" },
+            { symbol: "Y", name: "钇", atomicNumber: 39, atomicWeight: 88.906, period: 5, group: 3, category: "transition-metal" },
+            { symbol: "Zr", name: "锆", atomicNumber: 40, atomicWeight: 91.224, period: 5, group: 4, category: "transition-metal" },
+            { symbol: "Nb", name: "铌", atomicNumber: 41, atomicWeight: 92.906, period: 5, group: 5, category: "transition-metal" },
+            { symbol: "Mo", name: "钼", atomicNumber: 42, atomicWeight: 95.95, period: 5, group: 6, category: "transition-metal" },
+            { symbol: "Tc", name: "锝", atomicNumber: 43, atomicWeight: 98, period: 5, group: 7, category: "transition-metal" },
+            { symbol: "Ru", name: "钌", atomicNumber: 44, atomicWeight: 101.07, period: 5, group: 8, category: "transition-metal" },
+            { symbol: "Rh", name: "铑", atomicNumber: 45, atomicWeight: 102.91, period: 5, group: 9, category: "transition-metal" },
+            { symbol: "Pd", name: "钯", atomicNumber: 46, atomicWeight: 106.42, period: 5, group: 10, category: "transition-metal" },
+            { symbol: "Ag", name: "银", atomicNumber: 47, atomicWeight: 107.87, period: 5, group: 11, category: "transition-metal" },
+            { symbol: "Cd", name: "镉", atomicNumber: 48, atomicWeight: 112.41, period: 5, group: 12, category: "transition-metal" },
+            { symbol: "In", name: "铟", atomicNumber: 49, atomicWeight: 114.82, period: 5, group: 13, category: "post-transition" },
+            { symbol: "Sn", name: "锡", atomicNumber: 50, atomicWeight: 118.71, period: 5, group: 14, category: "post-transition" },
+            { symbol: "Sb", name: "锑", atomicNumber: 51, atomicWeight: 121.76, period: 5, group: 15, category: "metalloid" },
+            { symbol: "Te", name: "碲", atomicNumber: 52, atomicWeight: 127.60, period: 5, group: 16, category: "metalloid" },
+            { symbol: "I", name: "碘", atomicNumber: 53, atomicWeight: 126.90, period: 5, group: 17, category: "halogen" },
+            { symbol: "Xe", name: "氙", atomicNumber: 54, atomicWeight: 131.29, period: 5, group: 18, category: "noble-gas" },
+            { symbol: "Cs", name: "铯", atomicNumber: 55, atomicWeight: 132.91, period: 6, group: 1, category: "alkali-metal" },
+            { symbol: "Ba", name: "钡", atomicNumber: 56, atomicWeight: 137.33, period: 6, group: 2, category: "alkaline-earth" },
+            { symbol: "La", name: "镧", atomicNumber: 57, atomicWeight: 138.91, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Ce", name: "铈", atomicNumber: 58, atomicWeight: 140.12, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Pr", name: "镨", atomicNumber: 59, atomicWeight: 140.91, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Nd", name: "钕", atomicNumber: 60, atomicWeight: 144.24, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Pm", name: "钷", atomicNumber: 61, atomicWeight: 145, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Sm", name: "钐", atomicNumber: 62, atomicWeight: 150.36, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Eu", name: "铕", atomicNumber: 63, atomicWeight: 151.96, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Gd", name: "钆", atomicNumber: 64, atomicWeight: 157.25, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Tb", name: "铽", atomicNumber: 65, atomicWeight: 158.93, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Dy", name: "镝", atomicNumber: 66, atomicWeight: 162.50, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Ho", name: "钬", atomicNumber: 67, atomicWeight: 164.93, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Er", name: "铒", atomicNumber: 68, atomicWeight: 167.26, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Tm", name: "铥", atomicNumber: 69, atomicWeight: 168.93, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Yb", name: "镱", atomicNumber: 70, atomicWeight: 173.05, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Lu", name: "镥", atomicNumber: 71, atomicWeight: 174.97, period: 6, group: 3, category: "lanthanide" },
+            { symbol: "Hf", name: "铪", atomicNumber: 72, atomicWeight: 178.49, period: 6, group: 4, category: "transition-metal" },
+            { symbol: "Ta", name: "钽", atomicNumber: 73, atomicWeight: 180.95, period: 6, group: 5, category: "transition-metal" },
+            { symbol: "W", name: "钨", atomicNumber: 74, atomicWeight: 183.84, period: 6, group: 6, category: "transition-metal" },
+            { symbol: "Re", name: "铼", atomicNumber: 75, atomicWeight: 186.21, period: 6, group: 7, category: "transition-metal" },
+            { symbol: "Os", name: "锇", atomicNumber: 76, atomicWeight: 190.23, period: 6, group: 8, category: "transition-metal" },
+            { symbol: "Ir", name: "铱", atomicNumber: 77, atomicWeight: 192.22, period: 6, group: 9, category: "transition-metal" },
+            { symbol: "Pt", name: "铂", atomicNumber: 78, atomicWeight: 195.08, period: 6, group: 10, category: "transition-metal" },
+            { symbol: "Au", name: "金", atomicNumber: 79, atomicWeight: 196.97, period: 6, group: 11, category: "transition-metal" },
+            { symbol: "Hg", name: "汞", atomicNumber: 80, atomicWeight: 200.59, period: 6, group: 12, category: "transition-metal" },
+            { symbol: "Tl", name: "铊", atomicNumber: 81, atomicWeight: 204.38, period: 6, group: 13, category: "post-transition" },
+            { symbol: "Pb", name: "铅", atomicNumber: 82, atomicWeight: 207.2, period: 6, group: 14, category: "post-transition" },
+            { symbol: "Bi", name: "铋", atomicNumber: 83, atomicWeight: 208.98, period: 6, group: 15, category: "post-transition" },
+            { symbol: "Po", name: "钋", atomicNumber: 84, atomicWeight: 209, period: 6, group: 16, category: "post-transition" },
+            { symbol: "At", name: "砹", atomicNumber: 85, atomicWeight: 210, period: 6, group: 17, category: "halogen" },
+            { symbol: "Rn", name: "氡", atomicNumber: 86, atomicWeight: 222, period: 6, group: 18, category: "noble-gas" },
+            { symbol: "Fr", name: "钫", atomicNumber: 87, atomicWeight: 223, period: 7, group: 1, category: "alkali-metal" },
+            { symbol: "Ra", name: "镭", atomicNumber: 88, atomicWeight: 226, period: 7, group: 2, category: "alkaline-earth" },
+            { symbol: "Ac", name: "锕", atomicNumber: 89, atomicWeight: 227, period: 7, group: 3, category: "actinide" },
+            { symbol: "Th", name: "钍", atomicNumber: 90, atomicWeight: 232.04, period: 7, group: 3, category: "actinide" },
+            { symbol: "Pa", name: "镤", atomicNumber: 91, atomicWeight: 231.04, period: 7, group: 3, category: "actinide" },
+            { symbol: "U", name: "铀", atomicNumber: 92, atomicWeight: 238.03, period: 7, group: 3, category: "actinide" },
+            { symbol: "Np", name: "镎", atomicNumber: 93, atomicWeight: 237, period: 7, group: 3, category: "actinide" },
+            { symbol: "Pu", name: "钚", atomicNumber: 94, atomicWeight: 244, period: 7, group: 3, category: "actinide" },
+            { symbol: "Am", name: "镅", atomicNumber: 95, atomicWeight: 243, period: 7, group: 3, category: "actinide" },
+            { symbol: "Cm", name: "锔", atomicNumber: 96, atomicWeight: 247, period: 7, group: 3, category: "actinide" },
+            { symbol: "Bk", name: "锫", atomicNumber: 97, atomicWeight: 247, period: 7, group: 3, category: "actinide" },
+            { symbol: "Cf", name: "锎", atomicNumber: 98, atomicWeight: 251, period: 7, group: 3, category: "actinide" },
+            { symbol: "Es", name: "锿", atomicNumber: 99, atomicWeight: 252, period: 7, group: 3, category: "actinide" },
+            { symbol: "Fm", name: "镄", atomicNumber: 100, atomicWeight: 257, period: 7, group: 3, category: "actinide" },
+            { symbol: "Md", name: "钔", atomicNumber: 101, atomicWeight: 258, period: 7, group: 3, category: "actinide" },
+            { symbol: "No", name: "锘", atomicNumber: 102, atomicWeight: 259, period: 7, group: 3, category: "actinide" },
+            { symbol: "Lr", name: "铹", atomicNumber: 103, atomicWeight: 266, period: 7, group: 3, category: "actinide" },
+            { symbol: "Rf", name: "𬬻", atomicNumber: 104, atomicWeight: 267, period: 7, group: 4, category: "transition-metal" },
+            { symbol: "Db", name: "𬭊", atomicNumber: 105, atomicWeight: 268, period: 7, group: 5, category: "transition-metal" },
+            { symbol: "Sg", name: "𬭳", atomicNumber: 106, atomicWeight: 269, period: 7, group: 6, category: "transition-metal" },
+            { symbol: "Bh", name: "𬭛", atomicNumber: 107, atomicWeight: 270, period: 7, group: 7, category: "transition-metal" },
+            { symbol: "Hs", name: "𬭶", atomicNumber: 108, atomicWeight: 269, period: 7, group: 8, category: "transition-metal" },
+            { symbol: "Mt", name: "鿏", atomicNumber: 109, atomicWeight: 278, period: 7, group: 9, category: "unknown" },
+            { symbol: "Ds", name: "𫟼", atomicNumber: 110, atomicWeight: 281, period: 7, group: 10, category: "unknown" },
+            { symbol: "Rg", name: "𬬭", atomicNumber: 111, atomicWeight: 282, period: 7, group: 11, category: "unknown" },
+            { symbol: "Cn", name: "鿔", atomicNumber: 112, atomicWeight: 285, period: 7, group: 12, category: "unknown" },
+            { symbol: "Nh", name: "鉨", atomicNumber: 113, atomicWeight: 286, period: 7, group: 13, category: "unknown" },
+            { symbol: "Fl", name: "𫓧", atomicNumber: 114, atomicWeight: 289, period: 7, group: 14, category: "unknown" },
+            { symbol: "Mc", name: "镆", atomicNumber: 115, atomicWeight: 290, period: 7, group: 15, category: "unknown" },
+            { symbol: "Lv", name: "鉝", atomicNumber: 116, atomicWeight: 293, period: 7, group: 16, category: "unknown" },
+            { symbol: "Ts", name: "石田", atomicNumber: 117, atomicWeight: 294, period: 7, group: 17, category: "unknown" },
+            { symbol: "Og", name: "奥气", atomicNumber: 118, atomicWeight: 294, period: 7, group: 18, category: "unknown" }
+        ];
+
+        // 存储从config.json加载的详细数据
+        let configData = null;
+
+        // 创建元素的HTML元素
+        function createElementHTML(element) {
+            return `
+                <div id="${element.symbol}" class="element category-${element.category} w-full h-20 rounded flex flex-col items-center justify-center cursor-pointer">
+                    <div class="text-xs">${element.atomicNumber}</div>
+                    <div class="text-xl font-bold">${element.symbol}</div>
+                    <div class="text-xs">${element.name}</div>
+                    <div class="text-xs">${element.atomicWeight}</div>
+                </div>
+            `;
+        }
+
+        // 根据周期和族定位元素
+        function getElementPosition(period, group) {
+            // 特殊情况处理：镧系元素和锕系元素
+            if ((period === 6 && group === 3 && elementsData.find(e => e.period === period && e.group === group).atomicNumber > 57) || 
+                (period === 7 && group === 3 && elementsData.find(e => e.period === period && e.group === group).atomicNumber > 89)) {
+                return null; // 这些元素将在单独的行中显示
+            }
+            
+            return { row: period - 1, col: group - 1 };
+        }
+
+        // 渲染周期表
+        function renderPeriodicTable() {
+            const table = document.getElementById('periodicTable');
+            table.innerHTML = '';
+            
+            // 创建基本表格结构 - 7行18列
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 18; col++) {
+                    const cell = document.createElement('div');
+                    cell.style.gridRow = row + 1;
+                    cell.style.gridColumn = col + 1;
+                    
+                    // 找到对应的元素
+                    let element = null;
+                    
+                    if (row < 7) {
+                        // 主周期表
+                        element = elementsData.find(e => {
+                            const pos = getElementPosition(e.period, e.group);
+                            return pos && pos.row === row && pos.col === col;
+                        });
+                    } else if (row === 8) {
+                        // 镧系元素行
+                        if (col >= 2 && col <= 16) {
+                            const lanthanideIndex = col - 2;
+                            element = elementsData.find(e => 
+                                e.atomicNumber >= 58 && e.atomicNumber <= 71 && 
+                                e.atomicNumber - 58 === lanthanideIndex
+                            );
+                        }
+                    } else if (row === 9) {
+                        // 锕系元素行
+                        if (col >= 2 && col <= 16) {
+                            const actinideIndex = col - 2;
+                            element = elementsData.find(e => 
+                                e.atomicNumber >= 90 && e.atomicNumber <= 103 && 
+                                e.atomicNumber - 90 === actinideIndex
+                            );
+                        }
+                    }
+                    
+                    if (element) {
+                        cell.innerHTML = createElementHTML(element);
+                        cell.querySelector('.element').addEventListener('click', () => {
+                            loadElementDetails(element.symbol);
+                        });
+                    }
+                    
+                    table.appendChild(cell);
+                }
+            }
+            
+            // 添加镧系和锕系标记
+            const lanthanideMarker = document.createElement('div');
+            lanthanideMarker.style.gridRow = 6;
+            lanthanideMarker.style.gridColumn = 3;
+            lanthanideMarker.innerHTML = `
+                <div class="element category-lanthanide w-full h-20 rounded flex flex-col items-center justify-center">
+                    <div class="text-xs">57-71</div>
+                    <div class="text-sm font-bold">镧系</div>
+                </div>
+            `;
+            table.appendChild(lanthanideMarker);
+            
+            const actinideMarker = document.createElement('div');
+            actinideMarker.style.gridRow = 7;
+            actinideMarker.style.gridColumn = 3;
+            actinideMarker.innerHTML = `
+                <div class="element category-actinide w-full h-20 rounded flex flex-col items-center justify-center">
+                    <div class="text-xs">89-103</div>
+                    <div class="text-sm font-bold">锕系</div>
+                </div>
+            `;
+            table.appendChild(actinideMarker);
+        }
+
+        // 从外部文件加载详细元素数据
+        async function loadConfigFromServer() {
+            try {
+                const response = await fetch('/js/eletable/config.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误：${response.status}`);
+                }
+                configData = await response.json();
+                console.log("成功从服务器加载元素配置数据");
+                
+                // 隐藏加载指示器
+                document.getElementById('loadingIndicator').style.display = 'none';
+            } catch (error) {
+                console.error("加载配置数据失败:", error);
+                document.getElementById('loadingIndicator').textContent = "加载元素数据失败。请刷新页面重试。";
+                document.getElementById('loadingIndicator').classList.remove('bg-blue-500');
+                document.getElementById('loadingIndicator').classList.add('bg-red-500');
+            }
+        }
+
+        // 加载元素详情
+        function loadElementDetails(elementSymbol) {
+            const element = elementsData.find(e => e.symbol === elementSymbol);
+            
+            if (!element) return;
+            
+            document.getElementById('detailSymbol').textContent = element.symbol;
+            document.getElementById('detailName').textContent = element.name;
+            document.getElementById('detailAtomicNumber').textContent = element.atomicNumber;
+            document.getElementById('detailAtomicWeight').textContent = element.atomicWeight;
+            
+            // 添加错误处理和日志记录，以帮助诊断问题
+            console.log("正在加载元素详情:", elementSymbol);
+            
+            if (configData && configData.elements) {
+                console.log("可用的元素:", Object.keys(configData.elements));
+            } else {
+                console.log("配置数据尚未加载或格式不正确");
+            }
+            
+            // 如果已经加载了配置文件，则填充详细信息
+            if (configData && configData.elements && configData.elements[elementSymbol]) {
+                const details = configData.elements[elementSymbol];
+                console.log("找到元素详情:", details);
+                
+                // 确保使用正确的属性名称
+                document.getElementById('detailCategory').textContent = details.category || "暂无数据";
+                document.getElementById('detailMeltingPoint').textContent = details.meltingPoint || "暂无数据";
+                document.getElementById('detailBoilingPoint').textContent = details.boilingPoint || "暂无数据";
+                document.getElementById('detailAtomicRadius').textContent = details.atomicRadius || "暂无数据";
+                document.getElementById('detailElectronConfig').textContent = details.electronConfig || "暂无数据";
+                document.getElementById('detailDiscoverer').textContent = details.discoverer || "暂无数据";
+                document.getElementById('detailYearDiscovered').textContent = details.yearDiscovered || "暂无数据";
+                document.getElementById('detailDescription').textContent = details.description || "暂无描述";
+            } else {
+                // 没有详细信息或配置尚未加载
+                document.getElementById('detailCategory').textContent = "加载中...";
+                document.getElementById('detailMeltingPoint').textContent = "加载中...";
+                document.getElementById('detailBoilingPoint').textContent = "加载中...";
+                document.getElementById('detailAtomicRadius').textContent = "加载中...";
+                document.getElementById('detailElectronConfig').textContent = "加载中...";
+                document.getElementById('detailDiscoverer').textContent = "加载中...";
+                document.getElementById('detailYearDiscovered').textContent = "加载中...";
+                document.getElementById('detailDescription').textContent = "详细信息加载中，请稍候...";
+                
+                // 如果配置数据尚未加载，则尝试加载
+                if (!configData) {
+                    loadConfigFromServer().then(() => {
+                        // 配置加载完成后重新加载元素详情
+                        if (configData && configData.elements && configData.elements[elementSymbol]) {
+                            loadElementDetails(elementSymbol);
+                        } else {
+                            // 配置中没有该元素的详细信息
+                            document.getElementById('detailCategory').textContent = "暂无数据";
+                            document.getElementById('detailMeltingPoint').textContent = "暂无数据";
+                            document.getElementById('detailBoilingPoint').textContent = "暂无数据";
+                            document.getElementById('detailAtomicRadius').textContent = "暂无数据";
+                            document.getElementById('detailElectronConfig').textContent = "暂无数据";
+                            document.getElementById('detailDiscoverer').textContent = "暂无数据";
+                            document.getElementById('detailYearDiscovered').textContent = "暂无数据";
+                            document.getElementById('detailDescription').textContent = "此元素暂无详细信息。";
+                        }
+                    });
+                }
+            }
+            
+            document.getElementById('elementDetails').classList.remove('hidden');
+        }
+        
+        // 关闭详情按钮
+        document.getElementById('closeDetails').addEventListener('click', () => {
+            document.getElementById('elementDetails').classList.add('hidden');
+        });
+
+        // 页面加载时执行
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPeriodicTable();
+            loadConfigFromServer();
+        });
+    </script>
+</body>
+</html>
