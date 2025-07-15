@@ -12,7 +12,7 @@
             width: 60px;
         }
         .sidebar:hover {
-            width: 240px;
+            width: 200px;
         }
         .sidebar-item {
             transition: all 0.3s ease;
@@ -25,12 +25,75 @@
         .sidebar:hover .sidebar-text {
             opacity: 1;
         }
-        .search-box {
-            transition: all 0.3s ease;
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .search-box:focus-within {
-            transform: scale(1.02);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            padding: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .search-wrapper:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+        }
+        .search-engine-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+        }
+        .search-engine-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+        .search-engine-option:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        .search-engine-option.active {
+            opacity: 1;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 12px 16px;
+            font-size: 16px;
+            background: transparent;
+        }
+        .search-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .search-button:hover {
+            background: #2563eb;
+        }
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: #e2e8f0;
+            margin: 0 8px;
         }
         .common-link {
             transition: all 0.3s ease;
@@ -39,44 +102,63 @@
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #10b981;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
         .favicon-icon {
             width: 24px;
             height: 24px;
             border-radius: 4px;
+            object-fit: cover;
+        }
+        .icon-fallback {
+            display: none;
         }
         .main-content {
             margin-left: 60px;
             transition: margin-left 0.3s ease;
         }
-        .search-engine-select {
-            border-right: 1px solid #e5e7eb;
+        .category-section {
+            margin-bottom: 2rem;
         }
-        .search-engine-select:focus {
-            outline: none;
+        .view-more-btn {
+            border: 2px dashed #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .view-more-btn:hover {
             border-color: #3b82f6;
+            transform: translateY(-3px);
         }
-        .dropdown-arrow {
-            pointer-events: none;
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-            border-top: 4px solid #6b7280;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
         }
     </style>
 </head>
@@ -93,96 +175,9 @@
         </div>
         
         <div class="py-4">
-            <!-- 服务器状态 -->
-            <div class="px-4 mb-4">
-                <div class="flex items-center">
-                    <div class="status-dot flex-shrink-0"></div>
-                    <span class="sidebar-text ml-2 text-sm text-gray-600">河源服务器</span>
-                </div>
-            </div>
-            
             <!-- 服务列表 -->
-            <div class="space-y-1">
-                <!-- Wiki -->
-                <a href="http://47.120.53.205:3333" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 group">
-                    <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">W</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-blue-600">Wiki</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:3333</span>
-                </a>
-                
-                <!-- Alist -->
-                <a href="http://47.120.53.205:5244" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 group">
-                    <div class="w-6 h-6 bg-green-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">A</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-green-600">Alist</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:5244</span>
-                </a>
-                
-                <!-- 思源笔记 -->
-                <a href="http://47.120.53.205:6806" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 group">
-                    <div class="w-6 h-6 bg-purple-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">思</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-purple-600">思源笔记</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:6806</span>
-                </a>
-                
-                <!-- VSCode -->
-                <a href="http://47.120.53.205:40031" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 group">
-                    <div class="w-6 h-6 bg-indigo-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">VS</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-indigo-600">VSCode</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:40031</span>
-                </a>
-                
-                <!-- Gitea -->
-                <a href="http://47.120.53.205:3000" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 group">
-                    <div class="w-6 h-6 bg-orange-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">G</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-orange-600">Gitea</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:3000</span>
-                </a>
-                
-                <!-- Halo -->
-                <a href="http://47.120.53.205:8090" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-pink-50 hover:text-pink-600 group">
-                    <div class="w-6 h-6 bg-pink-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">H</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-pink-600">Halo</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:8090</span>
-                </a>
-                
-                <!-- 青龙面板 -->
-                <a href="http://47.120.53.205:5700" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 group">
-                    <div class="w-6 h-6 bg-cyan-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">青</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-cyan-600">青龙面板</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:5700</span>
-                </a>
-                
-                <!-- EasyImage -->
-                <a href="http://47.120.53.205:40061" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 group">
-                    <div class="w-6 h-6 bg-yellow-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">图</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-yellow-600">EasyImage</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:40061</span>
-                </a>
-                
-                <!-- OpenWebUI -->
-                <a href="http://47.120.53.205:3003" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 group">
-                    <div class="w-6 h-6 bg-red-500 rounded flex items-center justify-center flex-shrink-0">
-                        <span class="text-white text-xs font-bold">AI</span>
-                    </div>
-                    <span class="sidebar-text ml-3 group-hover:text-red-600">OpenWebUI</span>
-                    <span class="sidebar-text ml-auto text-xs text-gray-400">:3003</span>
-                </a>
+            <div id="sidebarServices" class="space-y-1">
+                <!-- 动态生成 -->
             </div>
         </div>
     </div>
@@ -193,250 +188,335 @@
             <!-- 搜索区域 -->
             <div class="text-center mb-16">
                 <h1 class="text-4xl font-bold text-gray-800 mb-8">资源导览</h1>
-                <div class="search-box max-w-2xl mx-auto">
-                    <form id="searchForm" class="relative">
-                        <div class="flex border border-gray-300 rounded-full shadow-sm overflow-hidden focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
-                            <!-- 搜索引擎选择下拉框 -->
-                            <div class="relative">
-                                <select id="searchEngine" class="search-engine-select appearance-none bg-white px-4 py-4 pr-8 text-gray-700 focus:outline-none cursor-pointer">
-                                    <option value="google">Google</option>
-                                    <option value="bing">Bing</option>
-                                    <option value="baidu">百度</option>
-                                    <option value="duckduckgo">DuckDuckGo</option>
-                                    <option value="yandex">Yandex</option>
-                                </select>
-                                <div class="dropdown-arrow"></div>
+                <div class="search-container">
+                    <form id="searchForm">
+                        <div class="search-wrapper">
+                            <div class="search-engine-selector" id="searchEngineSelector">
+                                <!-- 动态生成搜索引擎选项 -->
                             </div>
-                            
-                            <!-- 搜索输入框 -->
-                            <input type="text" id="searchInput" placeholder="搜索网络内容..." 
-                                   class="flex-1 px-6 py-4 text-lg focus:outline-none">
-                            
-                            <!-- 搜索按钮 -->
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 m-2 rounded-full transition-colors">
-                                搜索
+                            <div class="divider"></div>
+                            <input type="text" id="searchInput" class="search-input" placeholder="搜索网络内容...">
+                            <button type="submit" class="search-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
                             </button>
                         </div>
                     </form>
-                    
-                    <!-- 搜索提示 -->
-                    <div class="mt-4 text-sm text-gray-500">
-                        <p>选择搜索引擎，然后输入关键词进行搜索</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- 常用链接 -->
-            <div class="max-w-6xl mx-auto">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-8 text-center">常用链接</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                    <!-- Google -->
-                    <a href="https://www.google.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://www.google.com/favicon.ico" alt="Google" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">G</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Google</h3>
-                    </a>
-                    
-                    <!-- Bing -->
-                    <a href="https://www.bing.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://www.bing.com/favicon.ico" alt="Bing" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">B</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Bing</h3>
-                    </a>
-                    
-                    <!-- YouTube -->
-                    <a href="https://www.youtube.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://www.youtube.com/favicon.ico" alt="YouTube" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">Y</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">YouTube</h3>
-                    </a>
-                    
-                    <!-- 知乎 -->
-                    <a href="https://www.zhihu.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://www.zhihu.com/favicon.ico" alt="知乎" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">知</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">知乎</h3>
-                    </a>
-                    
-                    <!-- GitHub -->
-                    <a href="https://github.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://github.com/favicon.ico" alt="GitHub" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">G</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">GitHub</h3>
-                    </a>
-                    
-                    <!-- ChatGPT -->
-                    <a href="https://chat.openai.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://chat.openai.com/favicon.ico" alt="ChatGPT" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">AI</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">ChatGPT</h3>
-                    </a>
-                    
-                    <!-- Claude -->
-                    <a href="https://claude.ai" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://claude.ai/favicon.ico" alt="Claude" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">C</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Claude</h3>
-                    </a>
-                    
-                    <!-- Gemini -->
-                    <a href="https://gemini.google.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://gemini.google.com/favicon.ico" alt="Gemini" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">G</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Gemini</h3>
-                    </a>
-                    
-                    <!-- Perplexity -->
-                    <a href="https://www.perplexity.ai" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://www.perplexity.ai/favicon.ico" alt="Perplexity" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">P</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Perplexity</h3>
-                    </a>
-                    
-                    <!-- 通义千问 -->
-                    <a href="https://chat.qwen.ai" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://chat.qwen.ai/favicon.ico" alt="通义千问" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">通</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">通义千问</h3>
-                    </a>
-                    
-                    <!-- Deepseek -->
-                    <a href="https://chat.deepseek.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://chat.deepseek.com/favicon.ico" alt="Deepseek" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-slate-600 rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">D</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Deepseek</h3>
-                    </a>
-                    
-                    <!-- Grok -->
-                    <a href="https://grok.com" target="_blank" class="common-link bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg">
-                        <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                            <img src="https://grok.com/favicon.ico" alt="Grok" class="favicon-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center" style="display: none;">
-                                <span class="text-white font-bold text-lg">X</span>
-                            </div>
-                        </div>
-                        <h3 class="font-semibold text-gray-800">Grok</h3>
-                    </a>
-                </div>
+            <!-- 常用链接分类 -->
+            <div class="max-w-6xl mx-auto" id="categoriesContainer">
+                <!-- 动态生成分类内容 -->
             </div>
+        </div>
+    </div>
 
-            <!-- 底部信息 -->
-            <div class="mt-16 text-center text-gray-500">
-                <p>最后更新: <span id="lastUpdate"></span></p>
+    <!-- 模态窗口 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
+            <div id="modalContent" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- 动态生成模态窗口内容 -->
             </div>
         </div>
     </div>
 
     <script>
-        // 显示当前时间
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleString('zh-CN');
-        
+        // 数据配置
+        const DATA = {
+            // 侧边栏服务
+            sidebarServices: [
+                { name: "Wiki", url: "http://47.120.53.205:3333", icon: "W", color: "#3b82f6" },
+                { name: "Alist", url: "http://47.120.53.205:5244", icon: "A", color: "#10b981" },
+                { name: "思源笔记", url: "http://47.120.53.205:6806", icon: "思", color: "#8b5cf6" },
+                { name: "VSCode", url: "http://47.120.53.205:40031", icon: "VS", color: "#6366f1" },
+                { name: "Gitea", url: "http://47.120.53.205:3000", icon: "G", color: "#f97316" },
+                { name: "Halo", url: "http://blog.jyxxe.com", icon: "H", color: "#ec4899" },
+                { name: "青龙面板", url: "http://47.120.53.205:5700", icon: "青", color: "#06b6d4" },
+                { name: "EasyImage", url: "http://47.120.53.205:40061", icon: "图", color: "#eab308" },
+                { name: "OpenWebUI", url: "http://120.27.140.170:3000", icon: "AI", color: "#ef4444" }
+            ],
+
+            // 搜索引擎
+            searchEngines: [
+                { name: "Google", domain: "google.com", url: "http://www.google.com/search?q=", icon: "G", color: "#4285f4" },
+                { name: "Bing", domain: "bing.com", url: "http://www.bing.com/search?q=", icon: "B", color: "#00809d" },
+                { name: "DuckDuckGo", domain: "duckduckgo.com", url: "http://duckduckgo.com/?q=", icon: "D", color: "#de5833" },
+                { name: "Yandex", domain: "yandex.com", url: "http://yandex.com/search/?text=", icon: "Y", color: "#ff0000" }
+            ],
+
+            // 常用链接分类
+            categories: {
+                "搜索": [
+                    { name: "Google", url: "http://www.google.com", domain: "google.com" },
+                    { name: "Bing", url: "http://www.bing.com", domain: "bing.com" },
+                    { name: "DuckDuckGo", url: "http://duckduckgo.com", domain: "duckduckgo.com" },
+                    { name: "Yandex", url: "http://yandex.com", domain: "yandex.com" }
+                ],
+                "视频": [
+                    { name: "YouTube", url: "http://www.youtube.com", domain: "youtube.com" },
+                    { name: "Netflix", url: "http://www.netflix.com", domain: "netflix.com" },
+                    { name: "Bilibili", url: "http://www.bilibili.com", domain: "bilibili.com" },
+                    { name: "TikTok", url: "http://www.tiktok.com", domain: "tiktok.com" },
+                    { name: "Twitch", url: "http://www.twitch.tv", domain: "twitch.tv" }
+                ],
+                "社交": [
+                    { name: "Twitter", url: "http://twitter.com", domain: "twitter.com" },
+                    { name: "Facebook", url: "http://www.facebook.com", domain: "facebook.com" },
+                    { name: "Instagram", url: "http://www.instagram.com", domain: "instagram.com" },
+                    { name: "LinkedIn", url: "http://www.linkedin.com", domain: "linkedin.com" },
+                    { name: "微博", url: "http://weibo.com", domain: "weibo.com" },
+                    { name: "知乎", url: "http://www.zhihu.com", domain: "zhihu.com" }
+                ],
+                "AI": [
+                    { name: "ChatGPT", url: "http://chat.openai.com", domain: "openai.com" },
+                    { name: "Claude", url: "http://claude.ai", domain: "claude.ai" },
+                    { name: "Gemini", url: "http://gemini.google.com", domain: "gemini.google.com" },
+                    { name: "Perplexity", url: "http://www.perplexity.ai", domain: "perplexity.ai" },
+                    { name: "通义千问", url: "http://chat.qwen.ai", domain: "qwen.ai" },
+                    { name: "Deepseek", url: "http://chat.deepseek.com", domain: "deepseek.com" },
+                    { name: "Grok", url: "http://grok.com", domain: "grok.com" }
+                ],
+                "开发": [
+                    { name: "GitHub", url: "http://github.com", domain: "github.com" },
+                    { name: "GitLab", url: "http://gitlab.com", domain: "gitlab.com" },
+                    { name: "Stack Overflow", url: "http://stackoverflow.com", domain: "stackoverflow.com" },
+                    { name: "npm", url: "http://www.npmjs.com", domain: "npmjs.com" },
+                    { name: "PyPI", url: "http://pypi.org", domain: "pypi.org" }
+                ]
+            }
+        };
+
+        let currentSearchEngine = 'Google';
+
+        // 图标加载功能 - 优先第三方源
+        function loadIcon(container, domain, name, fallback, color) {
+            const iconSources = [
+                `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+                `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+                `https://favicon.yandex.net/favicon/v2/${domain}/?size=32`,
+                `https://www.google.com/s2/favicons?domain=${domain}`,
+                `http://www.${domain}/favicon.ico`,
+                `http://${domain}/favicon.ico`
+            ];
+            
+            let currentIndex = 0;
+            
+            function tryLoadIcon() {
+                if (currentIndex >= iconSources.length) {
+                    showFallbackIcon();
+                    return;
+                }
+                
+                const img = new Image();
+                img.onload = function() {
+                    const iconImg = document.createElement('img');
+                    iconImg.src = iconSources[currentIndex];
+                    iconImg.alt = name;
+                    iconImg.className = 'favicon-icon';
+                    container.innerHTML = '';
+                    container.appendChild(iconImg);
+                };
+                
+                img.onerror = function() {
+                    currentIndex++;
+                    tryLoadIcon();
+                };
+                
+                img.src = iconSources[currentIndex];
+            }
+            
+            function showFallbackIcon() {
+                container.innerHTML = `
+                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs" style="background-color: ${color}">
+                        ${fallback}
+                    </div>
+                `;
+            }
+            
+            tryLoadIcon();
+        }
+
+        // 渲染侧边栏服务
+        function renderSidebarServices() {
+            const container = document.getElementById('sidebarServices');
+            container.innerHTML = DATA.sidebarServices.map(service => `
+                <a href="${service.url}" target="_blank" class="sidebar-item flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 group">
+                    <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center flex-shrink-0" style="background-color: ${service.color}">
+                        <span class="text-white text-xs font-bold">${service.icon}</span>
+                    </div>
+                    <span class="sidebar-text ml-3 group-hover:text-blue-600">${service.name}</span>
+                </a>
+            `).join('');
+        }
+
+        // 渲染搜索引擎选择器
+        function renderSearchEngines() {
+            const container = document.getElementById('searchEngineSelector');
+            container.innerHTML = DATA.searchEngines.map(engine => `
+                <div class="icon-container search-engine-option ${engine.name === currentSearchEngine ? 'active' : ''}" 
+                     data-engine="${engine.name}" 
+                     data-domain="${engine.domain}" 
+                     data-name="${engine.name}" 
+                     data-fallback="${engine.icon}" 
+                     data-color="${engine.color}"
+                     data-url="${engine.url}">
+                </div>
+            `).join('');
+            
+            // 加载搜索引擎图标
+            DATA.searchEngines.forEach(engine => {
+                const container = document.querySelector(`[data-engine="${engine.name}"]`);
+                if (container) {
+                    loadIcon(container, engine.domain, engine.name, engine.icon, engine.color);
+                }
+            });
+            
+            // 添加点击事件
+            document.querySelectorAll('.search-engine-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.search-engine-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSearchEngine = this.dataset.engine;
+                    updateSearchPlaceholder();
+                });
+            });
+        }
+
+        // 渲染分类链接
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = Object.entries(DATA.categories).map(([category, links]) => {
+                const displayLinks = links.slice(0, 4);
+                const hasMore = links.length > 4;
+                
+                return `
+                    <div class="category-section">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">${category}</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            ${displayLinks.slice(0, hasMore ? 3 : 4).map(link => `
+                                <a href="${link.url}" target="_blank" class="common-link bg-white p-4 rounded-lg shadow-md text-center hover:shadow-lg">
+                                    <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                                        <div class="icon-container" data-domain="${link.domain}" data-name="${link.name}" data-fallback="${link.name.charAt(0)}" data-color="#6b7280">
+                                        </div>
+                                    </div>
+                                    <h4 class="font-medium text-gray-800 text-sm">${link.name}</h4>
+                                </a>
+                            `).join('')}
+                            ${hasMore ? `
+                                <div class="view-more-btn bg-white p-4 rounded-lg shadow-md text-center" onclick="showModal('${category}')">
+                                    <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+                                            <circle cx="12" cy="12" r="1"></circle>
+                                            <circle cx="19" cy="12" r="1"></circle>
+                                            <circle cx="5" cy="12" r="1"></circle>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-medium text-gray-500 text-sm">查看更多</h4>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // 加载图标
+            setTimeout(() => {
+                document.querySelectorAll('.icon-container').forEach(container => {
+                    const domain = container.dataset.domain;
+                    const name = container.dataset.name;
+                    const fallback = container.dataset.fallback;
+                    const color = container.dataset.color;
+                    loadIcon(container, domain, name, fallback, color);
+                });
+            }, 100);
+        }
+
+        // 显示模态窗口
+        function showModal(category) {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = category;
+            modalContent.innerHTML = DATA.categories[category].map(link => `
+                <a href="${link.url}" target="_blank" class="common-link bg-white p-4 rounded-lg shadow-md text-center hover:shadow-lg">
+                    <div class="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+                        <div class="icon-container" data-domain="${link.domain}" data-name="${link.name}" data-fallback="${link.name.charAt(0)}" data-color="#6b7280">
+                        </div>
+                    </div>
+                    <h4 class="font-medium text-gray-800 text-sm">${link.name}</h4>
+                </a>
+            `).join('');
+            
+            modal.style.display = 'block';
+            
+            // 加载模态窗口中的图标
+            setTimeout(() => {
+                modalContent.querySelectorAll('.icon-container').forEach(container => {
+                    const domain = container.dataset.domain;
+                    const name = container.dataset.name;
+                    const fallback = container.dataset.fallback;
+                    const color = container.dataset.color;
+                    loadIcon(container, domain, name, fallback, color);
+                });
+            }, 100);
+        }
+
+        // 更新搜索占位符
+        function updateSearchPlaceholder() {
+            const searchInput = document.getElementById('searchInput');
+            const placeholders = {
+                'Google': '使用 Google 搜索...',
+                'Bing': '使用 Bing 搜索...',
+                'DuckDuckGo': '使用 DuckDuckGo 搜索...',
+                'Yandex': '使用 Yandex 搜索...'
+            };
+            searchInput.placeholder = placeholders[currentSearchEngine] || '搜索网络内容...';
+        }
+
         // 搜索功能
         function performSearch() {
             const query = document.getElementById('searchInput').value.trim();
-            const engine = document.getElementById('searchEngine').value;
-            
             if (!query) {
                 alert('请输入搜索关键词');
                 return;
             }
             
-            let url;
-            switch(engine) {
-                case 'google':
-                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                    break;
-                case 'bing':
-                    url = `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
-                    break;
-                case 'baidu':
-                    url = `https://www.baidu.com/s?wd=${encodeURIComponent(query)}`;
-                    break;
-                case 'duckduckgo':
-                    url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-                    break;
-                case 'yandex':
-                    url = `https://yandex.com/search/?text=${encodeURIComponent(query)}`;
-                    break;
-                default:
-                    url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+            const engine = DATA.searchEngines.find(e => e.name === currentSearchEngine);
+            if (engine) {
+                window.open(engine.url + encodeURIComponent(query), '_blank');
             }
-            
-            window.open(url, '_blank');
         }
-        
-        // 表单提交处理
-        document.getElementById('searchForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            performSearch();
-        });
-        
-        // 回车键搜索
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+
+        // 初始化
+        window.addEventListener('load', function() {
+            renderSidebarServices();
+            renderSearchEngines();
+            renderCategories();
+            updateSearchPlaceholder();
+            
+            // 搜索表单事件
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 performSearch();
-            }
-        });
-        
-        // 搜索引擎选择变化时更新占位符
-        document.getElementById('searchEngine').addEventListener('change', function() {
-            const engine = this.value;
-            const searchInput = document.getElementById('searchInput');
+            });
             
-            const placeholders = {
-                'google': '搜索网络内容...',
-                'bing': '使用 Bing 搜索...',
-                'baidu': '使用百度搜索...',
-                'duckduckgo': '使用 DuckDuckGo 搜索...',
-                'yandex': '使用 Yandex 搜索...'
-            };
+            // 模态窗口关闭事件
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('modal').style.display = 'none';
+            });
             
-            searchInput.placeholder = placeholders[engine] || '搜索网络内容...';
+            window.addEventListener('click', function(e) {
+                const modal = document.getElementById('modal');
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>
