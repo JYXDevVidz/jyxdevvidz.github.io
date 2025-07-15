@@ -1,0 +1,12 @@
+{
+  "extensions": [
+    {
+      "id": "test",
+      "name": "测试扩展",
+      "description": "提供hello和calc命令",
+      "version": "1.0.0",
+      "author": "",
+      "file": "test.js"
+    }
+  ]
+}
