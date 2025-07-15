@@ -8,5 +8,13 @@
       "author": "",
       "file": "test.js"
     }
+    {
+      "id": "interaction",
+      "name": "交互测试扩展",
+      "description": "提供扩展的用户交互测试",
+      "version": "1.0.0",
+      "author": "",
+      "file": "interaction.js"
+    }
   ]
 }
