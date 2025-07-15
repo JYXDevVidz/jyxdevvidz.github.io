@@ -1,0 +1,1626 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOS 操作系统模拟器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #333;
+            border-bottom: 1px solid #666;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+        }
+
+        .toolbar-title {
+            color: #fff;
+            font-size: 14px;
+            margin-right: 20px;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .toolbar-buttons button {
+            padding: 5px 10px;
+            background: #555;
+            color: #fff;
+            border: 1px solid #777;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .toolbar-buttons button:hover {
+            background: #666;
+        }
+
+        .toolbar-buttons button:active {
+            background: #444;
+        }
+
+        .extension-status {
+            margin-left: auto;
+            color: #0f0;
+            font-size: 12px;
+        }
+
+        .extension-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .extension-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #333;
+            border: 1px solid #666;
+            border-radius: 3px;
+            min-width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .extension-dropdown.show {
+            display: block;
+        }
+
+        .extension-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #555;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .extension-item:hover {
+            background: #555;
+        }
+
+        .extension-item:last-child {
+            border-bottom: none;
+        }
+
+        .extension-item.loaded {
+            background: #1a4d1a;
+            color: #0f0;
+        }
+
+        .extension-item.loading {
+            background: #4d4d1a;
+            color: #ff0;
+        }
+
+        .extension-item.error {
+            background: #4d1a1a;
+            color: #f00;
+        }
+
+        .extension-title {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .extension-desc {
+            color: #ccc;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .extension-meta {
+            color: #888;
+            font-size: 10px;
+        }
+
+        #screen {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            color: #fff;
+            padding: 10px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .cursor {
+            background-color: #fff;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .boot-screen {
+            color: #0f0;
+        }
+
+        .error {
+            color: #f00;
+        }
+
+        .info {
+            color: #ff0;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .editor {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            color: #fff;
+            display: none;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            background: #333;
+            padding: 5px 10px;
+            border-bottom: 1px solid #666;
+            font-size: 12px;
+        }
+
+        .editor-content {
+            flex: 1;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            border: none;
+            outline: none;
+            resize: none;
+            background: transparent;
+            color: #fff;
+        }
+
+        .editor-footer {
+            background: #333;
+            padding: 5px 10px;
+            border-top: 1px solid #666;
+            font-size: 12px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="toolbar-title">DOS 6.22</div>
+        <div class="toolbar-buttons">
+            <button onclick="dosSystem.restart()">重启</button>
+            <button onclick="dosSystem.shutdown()">关机</button>
+            <button onclick="dosSystem.exportDisk()">导出A盘</button>
+            <button onclick="document.getElementById('diskInput').click()">导入A盘</button>
+            <button onclick="document.getElementById('extInput').click()">加载扩展</button>
+            <div class="extension-menu">
+                <button onclick="dosSystem.toggleExtensionMenu()">扩展商店</button>
+                <div class="extension-dropdown" id="extensionDropdown">
+                    <div class="extension-item loading" id="loadingExtensions">
+                        <div class="extension-title">加载中...</div>
+                        <div class="extension-desc">正在从服务器获取扩展列表</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="extension-status" id="extStatus"></div>
+        <input type="file" id="diskInput" class="file-input" accept=".json" onchange="dosSystem.importDisk(event)">
+        <input type="file" id="extInput" class="file-input" accept=".js" onchange="dosSystem.loadExtension(event)">
+    </div>
+    
+    <div id="screen"></div>
+    
+    <div class="editor" id="editor">
+        <div class="editor-header">
+            <span id="editorTitle">Edit - </span>
+            <span style="float: right;">F2=Save F3=Exit ESC=Cancel</span>
+        </div>
+        <textarea class="editor-content" id="editorContent"></textarea>
+        <div class="editor-footer">
+            <span id="editorStatus">Ready</span>
+        </div>
+    </div>
+
+    <script>
+        class DOSFileSystem {
+            constructor() {
+                this.disks = {
+                    'A:': this.loadDisk('A') || {
+                        type: 'floppy',
+                        writable: true,
+                        files: {
+                            'AUTOEXEC.BAT': 'ECHO Loading user configuration...\nECHO Welcome to DOS!\n',
+                            'CONFIG.SYS': 'FILES=20\nBUFFERS=15\n',
+                            'COMMAND.COM': '[SYSTEM FILE]'
+                        },
+                        directories: {
+                            'GAMES': {},
+                            'DOCS': {
+                                'README.TXT': 'This is a DOS simulation.\nUse DIR to list files.\nType HELP for available commands.\n'
+                            }
+                        }
+                    },
+                    'C:': {
+                        type: 'hard',
+                        writable: false,
+                        files: {
+                            'COMMAND.COM': '[SYSTEM FILE]',
+                            'AUTOEXEC.BAT': 'PATH=C:\\DOS;C:\\WINDOWS\nSET TEMP=C:\\TEMP\n',
+                            'CONFIG.SYS': 'DOS=HIGH,UMB\nDEVICE=C:\\DOS\\HIMEM.SYS\n'
+                        },
+                        directories: {
+                            'DOS': {
+                                'FORMAT.COM': '[SYSTEM FILE]',
+                                'FDISK.EXE': '[SYSTEM FILE]',
+                                'EDIT.COM': '[SYSTEM FILE]'
+                            },
+                            'WINDOWS': {
+                                'WIN.COM': '[SYSTEM FILE]',
+                                'SYSTEM.INI': '[SYSTEM FILE]'
+                            }
+                        }
+                    }
+                };
+                this.currentDrive = 'C:';
+                this.currentPath = '\\';
+            }
+
+            loadDisk(drive) {
+                try {
+                    const diskData = localStorage.getItem(`dos_disk_${drive}`);
+                    return diskData ? JSON.parse(diskData) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            saveDisk(drive) {
+                if (this.disks[drive + ':'].writable) {
+                    localStorage.setItem(`dos_disk_${drive}`, JSON.stringify(this.disks[drive + ':']));
+                }
+            }
+
+            getCurrentLocation() {
+                return this.disks[this.currentDrive];
+            }
+
+            parsePath(path) {
+                let drive = this.currentDrive;
+                let pathParts = path.split('\\').filter(p => p);
+                
+                if (path.includes(':')) {
+                    const parts = path.split(':');
+                    drive = parts[0].toUpperCase() + ':';
+                    pathParts = parts[1] ? parts[1].split('\\').filter(p => p) : [];
+                }
+                
+                return { drive, pathParts };
+            }
+
+            getFileOrDir(path) {
+                const { drive, pathParts } = this.parsePath(path);
+                
+                if (!this.disks[drive]) return null;
+                
+                let current = this.disks[drive];
+                
+                for (let part of pathParts) {
+                    if (current.directories && current.directories[part]) {
+                        current = current.directories[part];
+                    } else if (current.files && current.files[part]) {
+                        return { type: 'file', content: current.files[part] };
+                    } else {
+                        return null;
+                    }
+                }
+                
+                return { type: 'directory', content: current };
+            }
+
+            listDirectory(path = '') {
+                const fullPath = path || this.currentPath;
+                const { drive, pathParts } = this.parsePath(fullPath);
+                
+                if (!this.disks[drive]) return null;
+                
+                let current = this.disks[drive];
+                
+                for (let part of pathParts) {
+                    if (current.directories && current.directories[part]) {
+                        current = current.directories[part];
+                    } else {
+                        return null;
+                    }
+                }
+                
+                const items = [];
+                
+                // Add directories
+                if (current.directories) {
+                    for (let dir in current.directories) {
+                        items.push({ name: dir, type: 'directory', size: '<DIR>' });
+                    }
+                }
+                
+                // Add files
+                if (current.files) {
+                    for (let file in current.files) {
+                        const content = current.files[file];
+                        items.push({ 
+                            name: file, 
+                            type: 'file', 
+                            size: content.length.toString().padStart(8, ' ')
+                        });
+                    }
+                }
+                
+                return items;
+            }
+
+            createFile(path, content) {
+                const { drive, pathParts } = this.parsePath(path);
+                
+                if (!this.disks[drive] || !this.disks[drive].writable) {
+                    return false;
+                }
+                
+                let current = this.disks[drive];
+                const fileName = pathParts.pop();
+                
+                for (let part of pathParts) {
+                    if (!current.directories) current.directories = {};
+                    if (!current.directories[part]) current.directories[part] = {};
+                    current = current.directories[part];
+                }
+                
+                if (!current.files) current.files = {};
+                current.files[fileName] = content;
+                
+                this.saveDisk(drive.charAt(0));
+                return true;
+            }
+
+            deleteFile(path) {
+                const { drive, pathParts } = this.parsePath(path);
+                
+                if (!this.disks[drive] || !this.disks[drive].writable) {
+                    return false;
+                }
+                
+                let current = this.disks[drive];
+                const fileName = pathParts.pop();
+                
+                for (let part of pathParts) {
+                    if (!current.directories || !current.directories[part]) {
+                        return false;
+                    }
+                    current = current.directories[part];
+                }
+                
+                if (current.files && current.files[fileName]) {
+                    delete current.files[fileName];
+                    this.saveDisk(drive.charAt(0));
+                    return true;
+                }
+                
+                return false;
+            }
+        }
+
+        class DOSEditor {
+            constructor(dosSystem) {
+                this.dosSystem = dosSystem;
+                this.editor = document.getElementById('editor');
+                this.editorContent = document.getElementById('editorContent');
+                this.editorTitle = document.getElementById('editorTitle');
+                this.editorStatus = document.getElementById('editorStatus');
+                this.currentFile = '';
+                this.originalContent = '';
+                this.isActive = false;
+                
+                this.setupEditorEvents();
+            }
+
+            setupEditorEvents() {
+                this.editorContent.addEventListener('input', () => {
+                    this.editorStatus.textContent = 'Modified';
+                });
+
+                this.editorContent.addEventListener('keydown', (e) => {
+                    if (!this.isActive) return;
+                    
+                    if (e.key === 'F2') {
+                        e.preventDefault();
+                        this.saveFile();
+                    } else if (e.key === 'F3') {
+                        e.preventDefault();
+                        this.exitEditor();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.cancelEdit();
+                    }
+                });
+            }
+
+            openFile(filename) {
+                this.currentFile = filename;
+                this.isActive = true;
+                this.editorTitle.textContent = `Edit - ${filename}`;
+                
+                const result = this.dosSystem.fileSystem.getFileOrDir(filename);
+                if (result && result.type === 'file') {
+                    this.originalContent = result.content;
+                    this.editorContent.value = result.content;
+                } else {
+                    this.originalContent = '';
+                    this.editorContent.value = '';
+                }
+                
+                this.editorStatus.textContent = 'Ready';
+                this.editor.style.display = 'flex';
+                this.editorContent.focus();
+            }
+
+            saveFile() {
+                const content = this.editorContent.value;
+                
+                if (this.dosSystem.fileSystem.createFile(this.currentFile, content)) {
+                    this.originalContent = content;
+                    this.editorStatus.textContent = 'Saved';
+                    setTimeout(() => {
+                        if (this.isActive) {
+                            this.editorStatus.textContent = 'Ready';
+                        }
+                    }, 2000);
+                } else {
+                    this.editorStatus.textContent = 'Error: Cannot save file';
+                }
+            }
+
+            exitEditor() {
+                this.isActive = false;
+                this.editor.style.display = 'none';
+                this.dosSystem.isRunning = true;
+                this.dosSystem.showPrompt();
+            }
+
+            cancelEdit() {
+                if (this.editorContent.value !== this.originalContent) {
+                    if (confirm('Discard changes?')) {
+                        this.exitEditor();
+                    }
+                } else {
+                    this.exitEditor();
+                }
+            }
+        }
+
+        class DOSExtensionManager {
+            constructor(dosSystem) {
+                this.dosSystem = dosSystem;
+                this.extensions = {};
+                this.loadedExtensions = [];
+                this.officialExtensions = [];
+                this.extensionMenuOpen = false;
+                this.extensionBaseUrl = 'https://www.jyxxe.com/webos/dos/addons/';
+                this.loadOfficialExtensions();
+            }
+
+            async loadOfficialExtensions() {
+                try {
+                    // 首先尝试从官方地址加载
+                    const listUrl = this.extensionBaseUrl + 'list.json';
+                    
+                    let extensionList;
+                    try {
+                        const response = await fetch(listUrl);
+                        extensionList = await response.json();
+                    } catch (fetchError) {
+                        // 如果无法连接官方服务器，使用本地模拟数据
+                        console.warn('Cannot load from official server, using mock data');
+                        extensionList = this.getMockExtensionList();
+                    }
+                    
+                    this.officialExtensions = extensionList.extensions || [];
+                    this.updateExtensionMenu();
+                    
+                } catch (error) {
+                    console.error('Failed to load official extensions:', error);
+                    this.officialExtensions = [];
+                    this.updateExtensionMenu();
+                }
+            }
+
+            getMockExtensionList() {
+                return {
+                    "version": "1.0.0",
+                    "extensions": [
+                        {
+                            "id": "math-utils",
+                            "name": "数学工具",
+                            "description": "提供基本的数学计算功能",
+                            "version": "1.0.0",
+                            "author": "DOS Team",
+                            "file": "math-utils.js"
+                        },
+                        {
+                            "id": "text-utils",
+                            "name": "文本工具",
+                            "description": "提供文本处理功能",
+                            "version": "1.0.0",
+                            "author": "DOS Team",
+                            "file": "text-utils.js"
+                        },
+                        {
+                            "id": "system-info",
+                            "name": "系统信息",
+                            "description": "显示系统和浏览器信息",
+                            "version": "1.0.0",
+                            "author": "DOS Team",
+                            "file": "system-info.js"
+                        },
+                        {
+                            "id": "file-utils",
+                            "name": "文件工具",
+                            "description": "提供高级文件操作功能",
+                            "version": "1.0.0",
+                            "author": "DOS Team",
+                            "file": "file-utils.js"
+                        }
+                    ]
+                };
+            }
+
+            updateExtensionMenu() {
+                const dropdown = document.getElementById('extensionDropdown');
+                dropdown.innerHTML = '';
+                
+                if (this.officialExtensions.length === 0) {
+                    const item = document.createElement('div');
+                    item.className = 'extension-item error';
+                    item.innerHTML = `
+                        <div class="extension-title">无法加载扩展列表</div>
+                        <div class="extension-desc">请检查网络连接或稍后重试</div>
+                    `;
+                    dropdown.appendChild(item);
+                    return;
+                }
+                
+                this.officialExtensions.forEach(ext => {
+                    const item = document.createElement('div');
+                    item.className = 'extension-item';
+                    
+                    const isLoaded = this.loadedExtensions.includes(ext.id);
+                    
+                    if (isLoaded) {
+                        item.classList.add('loaded');
+                        item.innerHTML = `
+                            <div class="extension-title">✓ ${ext.name}</div>
+                            <div class="extension-desc">${ext.description}</div>
+                            <div class="extension-meta">v${ext.version} by ${ext.author} - 已安装</div>
+                        `;
+                    } else {
+                        item.innerHTML = `
+                            <div class="extension-title">${ext.name}</div>
+                            <div class="extension-desc">${ext.description}</div>
+                            <div class="extension-meta">v${ext.version} by ${ext.author}</div>
+                        `;
+                        item.addEventListener('click', () => {
+                            this.loadExtensionFromServer(ext);
+                        });
+                    }
+                    
+                    dropdown.appendChild(item);
+                });
+            }
+
+            async loadExtensionFromServer(extensionInfo) {
+                try {
+                    const item = document.querySelector(`#extensionDropdown .extension-item:nth-child(${this.officialExtensions.findIndex(e => e.id === extensionInfo.id) + 1})`);
+                    if (item) {
+                        item.classList.add('loading');
+                        item.innerHTML = `
+                            <div class="extension-title">⏳ ${extensionInfo.name}</div>
+                            <div class="extension-desc">正在加载...</div>
+                            <div class="extension-meta">v${extensionInfo.version} by ${extensionInfo.author}</div>
+                        `;
+                    }
+                    
+                    let code;
+                    try {
+                        const response = await fetch(this.extensionBaseUrl + extensionInfo.file);
+                        code = await response.text();
+                    } catch (fetchError) {
+                        // 如果无法从服务器获取，使用模拟代码
+                        code = this.getMockExtensionCode(extensionInfo.id);
+                    }
+                    
+                    if (this.loadExtension(code, extensionInfo.id)) {
+                        this.updateExtensionMenu();
+                        this.dosSystem.screenBuffer += `Extension "${extensionInfo.name}" loaded successfully!\n`;
+                        this.dosSystem.screen.textContent = this.dosSystem.screenBuffer;
+                    } else {
+                        throw new Error('Extension loading failed');
+                    }
+                } catch (error) {
+                    console.error('Failed to load extension:', error);
+                    const item = document.querySelector(`#extensionDropdown .extension-item:nth-child(${this.officialExtensions.findIndex(e => e.id === extensionInfo.id) + 1})`);
+                    if (item) {
+                        item.classList.add('error');
+                        item.innerHTML = `
+                            <div class="extension-title">❌ ${extensionInfo.name}</div>
+                            <div class="extension-desc">加载失败: ${error.message}</div>
+                            <div class="extension-meta">v${extensionInfo.version} by ${extensionInfo.author}</div>
+                        `;
+                    }
+                }
+            }
+
+            getMockExtensionCode(extensionId) {
+                const mockExtensions = {
+                    'math-utils': `
+return {
+    name: "数学工具",
+    commands: {
+        CALC: function(args) {
+            if (args.length < 3) {
+                context.console.log("Usage: CALC <num1> <op> <num2>");
+                context.console.log("Operators: +, -, *, /, %, ^");
+                return;
+            }
+            const num1 = parseFloat(args[0]);
+            const op = args[1];
+            const num2 = parseFloat(args[2]);
+            
+            if (isNaN(num1) || isNaN(num2)) {
+                context.console.log("Invalid numbers");
+                return;
+            }
+            
+            let result;
+            switch(op) {
+                case '+': result = num1 + num2; break;
+                case '-': result = num1 - num2; break;
+                case '*': result = num1 * num2; break;
+                case '/': 
+                    if (num2 === 0) {
+                        context.console.log("Division by zero");
+                        return;
+                    }
+                    result = num1 / num2; 
+                    break;
+                case '%': result = num1 % num2; break;
+                case '^': result = Math.pow(num1, num2); break;
+                default: 
+                    context.console.log("Invalid operator (+, -, *, /, %, ^)");
+                    return;
+            }
+            context.console.log(num1 + " " + op + " " + num2 + " = " + result);
+        },
+        SQRT: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: SQRT <number>");
+                return;
+            }
+            const num = parseFloat(args[0]);
+            if (isNaN(num)) {
+                context.console.log("Invalid number");
+                return;
+            }
+            if (num < 0) {
+                context.console.log("Cannot calculate square root of negative number");
+                return;
+            }
+            context.console.log("√" + num + " = " + Math.sqrt(num));
+        },
+        PI: function(args) {
+            context.console.log("π = " + Math.PI);
+        }
+    }
+};`,
+                    'text-utils': `
+return {
+    name: "文本工具",
+    commands: {
+        UPPER: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: UPPER <text>");
+                return;
+            }
+            context.console.log(args.join(' ').toUpperCase());
+        },
+        LOWER: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: LOWER <text>");
+                return;
+            }
+            context.console.log(args.join(' ').toLowerCase());
+        },
+        COUNT: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: COUNT <text>");
+                return;
+            }
+            const text = args.join(' ');
+            const lines = text.split('\\n').length;
+            const words = text.split(' ').filter(w => w.length > 0).length;
+            context.console.log("Characters: " + text.length);
+            context.console.log("Words: " + words);
+            context.console.log("Lines: " + lines);
+        },
+        REVERSE: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: REVERSE <text>");
+                return;
+            }
+            context.console.log(args.join(' ').split('').reverse().join(''));
+        }
+    }
+};`,
+                    'system-info': `
+return {
+    name: "系统信息",
+    commands: {
+        SYSINFO: function(args) {
+            context.console.log("=== System Information ===");
+            context.console.log("User Agent: " + navigator.userAgent);
+            context.console.log("Platform: " + navigator.platform);
+            context.console.log("Language: " + navigator.language);
+            context.console.log("Screen: " + screen.width + "x" + screen.height);
+            context.console.log("Viewport: " + window.innerWidth + "x" + window.innerHeight);
+            context.console.log("Current Time: " + new Date().toLocaleString());
+            context.console.log("Timezone: " + Intl.DateTimeFormat().resolvedOptions().timeZone);
+        },
+        MEMORY: function(args) {
+            if (performance.memory) {
+                const mem = performance.memory;
+                context.console.log("=== Memory Information ===");
+                context.console.log("Used: " + Math.round(mem.usedJSHeapSize / 1024 / 1024) + " MB");
+                context.console.log("Total: " + Math.round(mem.totalJSHeapSize / 1024 / 1024) + " MB");
+                context.console.log("Limit: " + Math.round(mem.jsHeapSizeLimit / 1024 / 1024) + " MB");
+            } else {
+                context.console.log("Memory information not available");
+            }
+        },
+        UPTIME: function(args) {
+            const uptime = performance.now();
+            const seconds = Math.floor(uptime / 1000) % 60;
+            const minutes = Math.floor(uptime / (1000 * 60)) % 60;
+            const hours = Math.floor(uptime / (1000 * 60 * 60));
+            context.console.log("System uptime: " + hours + "h " + minutes + "m " + seconds + "s");
+        }
+    }
+};`,
+                    'file-utils': `
+return {
+    name: "文件工具",
+    commands: {
+        FIND: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: FIND <pattern>");
+                return;
+            }
+            const pattern = args[0].toUpperCase();
+            const items = context.fileSystem.listDirectory();
+            if (items) {
+                const matches = items.filter(item => 
+                    item.name.toUpperCase().includes(pattern)
+                );
+                if (matches.length > 0) {
+                    context.console.log("Found " + matches.length + " match(es):");
+                    matches.forEach(item => {
+                        context.console.log("  " + item.name + " " + item.size);
+                    });
+                } else {
+                    context.console.log("No files found matching '" + pattern + "'");
+                }
+            }
+        },
+        TREE: function(args) {
+            context.console.log("Directory tree:");
+            context.console.log(context.fileSystem.currentDrive + context.fileSystem.currentPath);
+            const items = context.fileSystem.listDirectory();
+            if (items) {
+                items.forEach((item, index) => {
+                    const isLast = index === items.length - 1;
+                    const prefix = isLast ? "└── " : "├── ";
+                    const type = item.type === 'directory' ? '[DIR]' : '[FILE]';
+                    context.console.log(prefix + item.name + " " + type);
+                });
+            }
+        },
+        BACKUP: function(args) {
+            if (args.length < 1) {
+                context.console.log("Usage: BACKUP <filename>");
+                return;
+            }
+            const filename = args[0];
+            const result = context.fileSystem.getFileOrDir(filename);
+            if (result && result.type === 'file') {
+                const backupName = filename + '.bak';
+                if (context.fileSystem.createFile(backupName, result.content)) {
+                    context.console.log("Backup created: " + backupName);
+                } else {
+                    context.console.log("Failed to create backup");
+                }
+            } else {
+                context.console.log("File not found: " + filename);
+            }
+        }
+    }
+};`
+                };
+                
+                return mockExtensions[extensionId] || '';
+            }
+
+            loadExtension(code, filename) {
+                try {
+                    // Create a safe execution context
+                    const context = {
+                        dosSystem: this.dosSystem,
+                        fileSystem: this.dosSystem.fileSystem,
+                        screen: this.dosSystem.screen,
+                        console: {
+                            log: (msg) => {
+                                this.dosSystem.screenBuffer += msg + '\n';
+                                this.dosSystem.screen.textContent = this.dosSystem.screenBuffer;
+                            }
+                        }
+                    };
+
+                    // Execute the extension code
+                    const func = new Function('context', code);
+                    const extension = func(context);
+
+                    if (extension && extension.name && extension.commands) {
+                        // Check for command conflicts
+                        const conflicts = [];
+                        for (let cmd in extension.commands) {
+                            if (this.dosSystem.customCommands[cmd.toUpperCase()]) {
+                                conflicts.push(cmd);
+                            }
+                        }
+                        
+                        if (conflicts.length > 0) {
+                            throw new Error(`Command conflicts: ${conflicts.join(', ')}`);
+                        }
+
+                        this.extensions[extension.name] = extension;
+                        this.loadedExtensions.push(filename);
+                        
+                        // Register commands
+                        for (let cmd in extension.commands) {
+                            this.dosSystem.registerCommand(cmd.toUpperCase(), extension.commands[cmd]);
+                        }
+
+                        // Update status
+                        this.updateExtensionStatus();
+                        
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('Extension loading error:', error);
+                    return false;
+                }
+            }
+
+            updateExtensionStatus() {
+                const statusEl = document.getElementById('extStatus');
+                if (this.loadedExtensions.length > 0) {
+                    statusEl.textContent = `扩展 (${this.loadedExtensions.length}): ${this.loadedExtensions.join(', ')}`;
+                } else {
+                    statusEl.textContent = '';
+                }
+            }
+
+            unloadExtension(name) {
+                if (this.extensions[name]) {
+                    // Unregister commands
+                    for (let cmd in this.extensions[name].commands) {
+                        this.dosSystem.unregisterCommand(cmd.toUpperCase());
+                    }
+                    
+                    delete this.extensions[name];
+                    this.loadedExtensions = this.loadedExtensions.filter(ext => ext !== name);
+                    
+                    this.updateExtensionStatus();
+                    this.updateExtensionMenu();
+                }
+            }
+        }
+
+        class DOSSystem {
+            constructor() {
+                this.screen = document.getElementById('screen');
+                this.fileSystem = new DOSFileSystem();
+                this.editor = new DOSEditor(this);
+                this.extensionManager = new DOSExtensionManager(this);
+                this.currentLine = '';
+                this.cursorPos = 0;
+                this.history = [];
+                this.historyIndex = -1;
+                this.isBooting = false;
+                this.isRunning = false;
+                this.customCommands = {};
+                this.screenBuffer = '';
+                this.currentPrompt = '';
+                
+                this.setupKeyboardListener();
+                this.setupClickListener();
+                this.boot();
+            }
+
+            setupClickListener() {
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.extension-menu')) {
+                        document.getElementById('extensionDropdown').classList.remove('show');
+                        this.extensionManager.extensionMenuOpen = false;
+                    }
+                });
+            }
+
+            registerCommand(name, handler) {
+                this.customCommands[name] = handler;
+            }
+
+            unregisterCommand(name) {
+                delete this.customCommands[name];
+            }
+
+            setupKeyboardListener() {
+                document.addEventListener('keydown', (e) => {
+                    if (!this.isRunning || this.editor.isActive) return;
+                    
+                    e.preventDefault();
+                    
+                    // Handle special keys
+                    if (e.ctrlKey && e.key === 'c') {
+                        this.handleCtrlC();
+                        return;
+                    }
+                    
+                    if (e.ctrlKey && e.key === 'z') {
+                        this.handleCtrlZ();
+                        return;
+                    }
+                    
+                    switch (e.key) {
+                        case 'Enter':
+                            this.handleEnter();
+                            break;
+                        case 'Backspace':
+                            this.handleBackspace();
+                            break;
+                        case 'ArrowUp':
+                            this.handleArrowUp();
+                            break;
+                        case 'ArrowDown':
+                            this.handleArrowDown();
+                            break;
+                        case 'ArrowLeft':
+                            this.handleArrowLeft();
+                            break;
+                        case 'ArrowRight':
+                            this.handleArrowRight();
+                            break;
+                        case 'Tab':
+                            this.handleTab();
+                            break;
+                        default:
+                            if (e.key.length === 1) {
+                                this.handleChar(e.key);
+                            }
+                    }
+                });
+            }
+
+            async boot() {
+                this.isBooting = true;
+                this.screen.innerHTML = '';
+                this.screen.className = 'boot-screen';
+                this.screenBuffer = '';
+                
+                await this.typeText('Starting DOS...\n\n');
+                await this.sleep(500);
+                
+                await this.typeText('DOS Version 6.22\n');
+                await this.typeText('Copyright (C) 1981-1994 Microsoft Corp.\n\n');
+                await this.sleep(300);
+                
+                await this.typeText('Loading device drivers...\n');
+                await this.sleep(200);
+                await this.typeText('HIMEM.SYS loaded\n');
+                await this.sleep(200);
+                await this.typeText('EMM386.EXE loaded\n\n');
+                await this.sleep(300);
+                
+                await this.typeText('Initializing file system...\n');
+                await this.sleep(400);
+                
+                await this.typeText('A:\\ - 1.44MB Floppy Drive\n');
+                await this.typeText('C:\\ - Hard Drive (System)\n\n');
+                await this.sleep(500);
+                
+                await this.typeText('Executing AUTOEXEC.BAT...\n');
+                await this.sleep(300);
+                
+                this.screen.className = '';
+                this.isBooting = false;
+                this.isRunning = true;
+                
+                this.showPrompt();
+            }
+
+            async typeText(text) {
+                for (let char of text) {
+                    this.screenBuffer += char;
+                    this.screen.textContent = this.screenBuffer;
+                    this.scrollToBottom();
+                    await this.sleep(30);
+                }
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            showPrompt() {
+                this.currentPrompt = `${this.fileSystem.currentDrive}${this.fileSystem.currentPath}>`;
+                this.screenBuffer += this.currentPrompt;
+                this.screen.textContent = this.screenBuffer;
+                this.currentLine = '';
+                this.cursorPos = 0;
+                this.updateCursor();
+            }
+
+            updateCursor() {
+                // 使用更精确的光标定位方法
+                const displayText = this.screenBuffer + this.currentLine;
+                const beforeCursor = this.currentLine.slice(0, this.cursorPos);
+                const afterCursor = this.currentLine.slice(this.cursorPos);
+                
+                // 构建显示内容
+                const fullText = this.screenBuffer + beforeCursor + '<span class="cursor">_</span>' + afterCursor;
+                this.screen.innerHTML = fullText.replace(/\n/g, '<br>');
+                
+                this.scrollToBottom();
+            }
+
+            scrollToBottom() {
+                this.screen.scrollTop = this.screen.scrollHeight;
+            }
+
+            handleChar(char) {
+                this.currentLine = this.currentLine.slice(0, this.cursorPos) + char + this.currentLine.slice(this.cursorPos);
+                this.cursorPos++;
+                this.updateCursor();
+            }
+
+            handleBackspace() {
+                if (this.cursorPos > 0) {
+                    this.currentLine = this.currentLine.slice(0, this.cursorPos - 1) + this.currentLine.slice(this.cursorPos);
+                    this.cursorPos--;
+                    this.updateCursor();
+                }
+            }
+
+            handleEnter() {
+                this.screenBuffer += this.currentLine + '\n';
+                this.screen.textContent = this.screenBuffer;
+                
+                if (this.currentLine.trim()) {
+                    this.history.push(this.currentLine);
+                    this.historyIndex = this.history.length;
+                    this.executeCommand(this.currentLine.trim());
+                } else {
+                    this.showPrompt();
+                }
+            }
+
+            handleArrowUp() {
+                if (this.historyIndex > 0) {
+                    this.historyIndex--;
+                    this.currentLine = this.history[this.historyIndex];
+                    this.cursorPos = this.currentLine.length;
+                    this.updateCursor();
+                }
+            }
+
+            handleArrowDown() {
+                if (this.historyIndex < this.history.length - 1) {
+                    this.historyIndex++;
+                    this.currentLine = this.history[this.historyIndex];
+                    this.cursorPos = this.currentLine.length;
+                    this.updateCursor();
+                } else {
+                    this.historyIndex = this.history.length;
+                    this.currentLine = '';
+                    this.cursorPos = 0;
+                    this.updateCursor();
+                }
+            }
+
+            handleArrowLeft() {
+                if (this.cursorPos > 0) {
+                    this.cursorPos--;
+                    this.updateCursor();
+                }
+            }
+
+            handleArrowRight() {
+                if (this.cursorPos < this.currentLine.length) {
+                    this.cursorPos++;
+                    this.updateCursor();
+                }
+            }
+
+            handleTab() {
+                const commands = ['DIR', 'CD', 'TYPE', 'COPY', 'DEL', 'MD', 'RD', 'HELP', 'CLS', 'VER', 'DATE', 'TIME', 'EXIT', 'EDIT'];
+                const allCommands = [...commands, ...Object.keys(this.customCommands)];
+                const partial = this.currentLine.toUpperCase();
+                const matches = allCommands.filter(cmd => cmd.startsWith(partial));
+                
+                if (matches.length === 1) {
+                    this.currentLine = matches[0];
+                    this.cursorPos = this.currentLine.length;
+                    this.updateCursor();
+                }
+            }
+
+            handleCtrlC() {
+                this.screenBuffer += '^C\n';
+                this.screen.textContent = this.screenBuffer;
+                this.showPrompt();
+            }
+
+            handleCtrlZ() {
+                this.screenBuffer += '^Z\n';
+                this.screen.textContent = this.screenBuffer;
+                this.showPrompt();
+            }
+
+            toggleExtensionMenu() {
+                const dropdown = document.getElementById('extensionDropdown');
+                if (this.extensionManager.extensionMenuOpen) {
+                    dropdown.classList.remove('show');
+                    this.extensionManager.extensionMenuOpen = false;
+                } else {
+                    dropdown.classList.add('show');
+                    this.extensionManager.extensionMenuOpen = true;
+                }
+            }
+
+            executeCommand(command) {
+                const args = command.split(/\s+/);
+                const cmd = args[0].toUpperCase();
+                
+                // Check custom commands first
+                if (this.customCommands[cmd]) {
+                    try {
+                        this.customCommands[cmd](args.slice(1));
+                        this.showPrompt();
+                        return;
+                    } catch (error) {
+                        this.screenBuffer += `Extension error: ${error.message}\n`;
+                        this.screen.textContent = this.screenBuffer;
+                        this.showPrompt();
+                        return;
+                    }
+                }
+                
+                switch (cmd) {
+                    case 'DIR':
+                        this.cmdDir(args.slice(1));
+                        break;
+                    case 'CD':
+                        this.cmdCd(args.slice(1));
+                        break;
+                    case 'TYPE':
+                        this.cmdType(args.slice(1));
+                        break;
+                    case 'COPY':
+                        this.cmdCopy(args.slice(1));
+                        break;
+                    case 'DEL':
+                    case 'DELETE':
+                        this.cmdDel(args.slice(1));
+                        break;
+                    case 'MD':
+                    case 'MKDIR':
+                        this.cmdMd(args.slice(1));
+                        break;
+                    case 'RD':
+                    case 'RMDIR':
+                        this.cmdRd(args.slice(1));
+                        break;
+                    case 'CLS':
+                        this.cmdCls();
+                        break;
+                    case 'HELP':
+                        this.cmdHelp();
+                        break;
+                    case 'VER':
+                        this.cmdVer();
+                        break;
+                    case 'DATE':
+                        this.cmdDate();
+                        break;
+                    case 'TIME':
+                        this.cmdTime();
+                        break;
+                    case 'EXIT':
+                        this.cmdExit();
+                        break;
+                    case 'EDIT':
+                        this.cmdEdit(args.slice(1));
+                        break;
+                    case 'EXTENSIONS':
+                        this.cmdExtensions();
+                        break;
+                    case 'A:':
+                    case 'C:':
+                        this.changeDrive(cmd);
+                        break;
+                    default:
+                        this.screenBuffer += `Bad command or file name: ${cmd}\n`;
+                        this.screen.textContent = this.screenBuffer;
+                }
+                
+                if (cmd !== 'EDIT') {
+                    this.showPrompt();
+                }
+            }
+
+            cmdDir(args) {
+                const path = args[0] || '';
+                const items = this.fileSystem.listDirectory(path);
+                
+                if (!items) {
+                    this.screenBuffer += 'File not found\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                this.screenBuffer += `Directory of ${this.fileSystem.currentDrive}${this.fileSystem.currentPath}\n\n`;
+                
+                if (items.length === 0) {
+                    this.screenBuffer += 'No files found\n';
+                } else {
+                    for (let item of items) {
+                        const date = new Date().toLocaleDateString('en-US', { 
+                            month: '2-digit', 
+                            day: '2-digit', 
+                            year: '2-digit' 
+                        });
+                        const time = new Date().toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: false
+                        });
+                        
+                        this.screenBuffer += `${item.name.padEnd(12)} ${item.size.padStart(8)} ${date}  ${time}\n`;
+                    }
+                }
+                
+                this.screenBuffer += `\n      ${items.length} file(s)\n`;
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdCd(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += `${this.fileSystem.currentDrive}${this.fileSystem.currentPath}\n`;
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                const path = args[0];
+                if (path === '..') {
+                    if (this.fileSystem.currentPath !== '\\') {
+                        const parts = this.fileSystem.currentPath.split('\\').filter(p => p);
+                        parts.pop();
+                        this.fileSystem.currentPath = '\\' + parts.join('\\');
+                        if (this.fileSystem.currentPath !== '\\') {
+                            this.fileSystem.currentPath += '\\';
+                        }
+                    }
+                } else {
+                    const result = this.fileSystem.getFileOrDir(path);
+                    if (result && result.type === 'directory') {
+                        this.fileSystem.currentPath = path.endsWith('\\') ? path : path + '\\';
+                    } else {
+                        this.screenBuffer += 'Invalid directory\n';
+                        this.screen.textContent = this.screenBuffer;
+                    }
+                }
+            }
+
+            cmdType(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                const result = this.fileSystem.getFileOrDir(args[0]);
+                if (result && result.type === 'file') {
+                    this.screenBuffer += result.content + '\n';
+                } else {
+                    this.screenBuffer += 'File not found\n';
+                }
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdCopy(args) {
+                if (args.length < 2) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                const source = this.fileSystem.getFileOrDir(args[0]);
+                if (!source || source.type !== 'file') {
+                    this.screenBuffer += 'File not found\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                if (this.fileSystem.createFile(args[1], source.content)) {
+                    this.screenBuffer += '1 file(s) copied\n';
+                } else {
+                    this.screenBuffer += 'Access denied\n';
+                }
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdDel(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                if (this.fileSystem.deleteFile(args[0])) {
+                    this.screenBuffer += '1 file(s) deleted\n';
+                } else {
+                    this.screenBuffer += 'File not found or access denied\n';
+                }
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdMd(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                this.screenBuffer += 'Directory created\n';
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdRd(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                this.screenBuffer += 'Directory removed\n';
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdCls() {
+                this.screenBuffer = '';
+                this.screen.textContent = '';
+            }
+
+            cmdEdit(args) {
+                if (args.length === 0) {
+                    this.screenBuffer += 'Required parameter missing\n';
+                    this.screen.textContent = this.screenBuffer;
+                    return;
+                }
+                
+                this.isRunning = false;
+                this.editor.openFile(args[0]);
+            }
+
+            cmdExtensions() {
+                this.screenBuffer += 'Loaded Extensions:\n';
+                if (this.extensionManager.loadedExtensions.length === 0) {
+                    this.screenBuffer += '  No extensions loaded\n';
+                } else {
+                    for (let ext of this.extensionManager.loadedExtensions) {
+                        this.screenBuffer += `  - ${ext}\n`;
+                    }
+                }
+                this.screenBuffer += '\nAvailable commands from extensions:\n';
+                const extCommands = Object.keys(this.customCommands);
+                if (extCommands.length === 0) {
+                    this.screenBuffer += '  No additional commands\n';
+                } else {
+                    for (let cmd of extCommands) {
+                        this.screenBuffer += `  ${cmd}\n`;
+                    }
+                }
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdHelp() {
+                this.screenBuffer += `Available commands:
+DIR      - List files and directories
+CD       - Change directory
+TYPE     - Display file contents
+COPY     - Copy files
+DEL      - Delete files
+MD       - Create directory
+RD       - Remove directory
+CLS      - Clear screen
+EDIT     - Edit text files
+HELP     - Show this help
+VER      - Show version
+DATE     - Show date
+TIME     - Show time
+EXIT     - Exit DOS
+EXTENSIONS - Show loaded extensions
+A:       - Change to A: drive
+C:       - Change to C: drive
+
+Use Ctrl+C to break current operation
+`;
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdVer() {
+                this.screenBuffer += 'MS-DOS Version 6.22\n';
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdDate() {
+                const date = new Date().toLocaleDateString('en-US', { 
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                this.screenBuffer += `Current date is ${date}\n`;
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdTime() {
+                const time = new Date().toLocaleTimeString('en-US', { 
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                this.screenBuffer += `Current time is ${time}\n`;
+                this.screen.textContent = this.screenBuffer;
+            }
+
+            cmdExit() {
+                this.screenBuffer += 'Goodbye!\n';
+                this.screen.textContent = this.screenBuffer;
+                this.isRunning = false;
+                setTimeout(() => {
+                    this.screen.innerHTML = '<div style="color: #888; text-align: center; margin-top: 200px;">System Halted<br>Press any key to restart</div>';
+                    document.addEventListener('keydown', () => {
+                        this.restart();
+                    }, { once: true });
+                }, 1000);
+            }
+
+            changeDrive(drive) {
+                if (this.fileSystem.disks[drive]) {
+                    this.fileSystem.currentDrive = drive;
+                    this.fileSystem.currentPath = '\\';
+                } else {
+                    this.screenBuffer += 'Invalid drive specification\n';
+                    this.screen.textContent = this.screenBuffer;
+                }
+            }
+
+            restart() {
+                this.isRunning = false;
+                this.boot();
+            }
+
+            shutdown() {
+                this.isRunning = false;
+                this.screen.innerHTML = '<div style="color: #888; text-align: center; margin-top: 200px;">It is now safe to turn off your computer</div>';
+            }
+
+            exportDisk() {
+                const diskData = this.fileSystem.disks['A:'];
+                const dataStr = JSON.stringify(diskData, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'dos_disk_a.json';
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+
+            importDisk(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const diskData = JSON.parse(e.target.result);
+                            this.fileSystem.disks['A:'] = diskData;
+                            this.fileSystem.saveDisk('A');
+                            alert('A盘导入成功！');
+                        } catch (error) {
+                            alert('导入失败：文件格式错误');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+                event.target.value = '';
+            }
+
+            loadExtension(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (this.extensionManager.loadExtension(e.target.result, file.name)) {
+                            alert(`扩展 ${file.name} 加载成功！`);
+                        } else {
+                            alert('扩展加载失败：格式错误或执行出错');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+                event.target.value = '';
+            }
+        }
+
+        // Initialize DOS system
+        const dosSystem = new DOSSystem();
+    </script>
+</body>
+</html>
