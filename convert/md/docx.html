@@ -1,0 +1,798 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown 转 DOCX 工具</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- markdown-it 用于 Markdown 转换 -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js"></script>
+  <!-- KaTeX 用于 LaTeX 渲染 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- docx 库用于生成 DOCX 文件 -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+  <!-- file-saver 用于下载文件 -->
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <!-- html2canvas 用于将 LaTeX 渲染结果转换为图片 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    .container-custom {
+      max-width: 95%;
+      width: 100%;
+    }
+    
+    @media (min-width: 1200px) {
+      .container-custom {
+        max-width: 1400px;
+      }
+    }
+    
+    @media (min-width: 1600px) {
+      .container-custom {
+        max-width: 1600px;
+      }
+    }
+    
+    .edit-height {
+      height: 70vh;
+      min-height: 400px;
+    }
+    
+    .resize-handle {
+      width: 4px;
+      background: #e5e7eb;
+      cursor: ew-resize;
+      transition: background 0.2s;
+    }
+    
+    .resize-handle:hover {
+      background: #3b82f6;
+    }
+
+    /* 预览样式 */
+    .docx-preview {
+      background: white;
+      padding: 2em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-family: 'Times New Roman', serif;
+      line-height: 1.6;
+      color: #000;
+    }
+
+    .docx-preview h1 {
+      font-size: 2em;
+      font-weight: bold;
+      margin: 1em 0 0.5em 0;
+      color: #000;
+    }
+
+    .docx-preview h2 {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin: 1em 0 0.5em 0;
+      color: #000;
+    }
+
+    .docx-preview h3 {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin: 1em 0 0.5em 0;
+      color: #000;
+    }
+
+    .docx-preview p {
+      margin: 0.5em 0;
+      text-align: justify;
+    }
+
+    .docx-preview blockquote {
+      margin: 1em 0;
+      padding: 0.5em 1em;
+      border-left: 4px solid #ccc;
+      background: #f9f9f9;
+      font-style: italic;
+    }
+
+    .docx-preview table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+
+    .docx-preview th,
+    .docx-preview td {
+      border: 1px solid #000;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .docx-preview th {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+
+    .docx-preview pre {
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 1em;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .docx-preview code {
+      background: #f5f5f5;
+      padding: 2px 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .docx-preview ul,
+    .docx-preview ol {
+      padding-left: 2em;
+      margin: 0.5em 0;
+    }
+
+    .docx-preview li {
+      margin: 0.3em 0;
+    }
+
+    .docx-preview hr {
+      border: none;
+      border-top: 1px solid #000;
+      margin: 1em 0;
+    }
+
+    .docx-preview a {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+
+    .docx-preview strong {
+      font-weight: bold;
+    }
+
+    .docx-preview em {
+      font-style: italic;
+    }
+
+    .docx-preview del {
+      text-decoration: line-through;
+    }
+
+    /* LaTeX 公式样式 */
+    .katex-display {
+      margin: 1em 0;
+      text-align: center;
+    }
+
+    .katex {
+      font-size: 1.1em;
+    }
+
+    /* 隐藏的 LaTeX 渲染区域 */
+    .latex-render-hidden {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      background: white;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-50 pt-4 pb-4 px-2">
+  <script src="/js/background.js"></script>
+  <div class="container-custom mx-auto bg-white shadow-lg rounded-lg p-6">
+    <h1 class="text-3xl font-bold mb-6 text-purple-700">Markdown 转 DOCX 工具 <span class="text-sm text-gray-600">(支持 LaTeX)</span></h1>
+    
+    <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+      <p class="text-sm text-blue-800">
+        <strong>LaTeX 支持说明：</strong>
+        行内公式用 <code>$公式$</code>，独立行公式用 <code>$$公式$$</code>。
+        例如：<code>$E=mc^2$</code> 和 <code>$$\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$</code>
+      </p>
+    </div>
+    
+    <div class="flex flex-col lg:flex-row gap-2" id="main-container">
+      <!-- Markdown 编辑区 -->
+      <div class="flex-1 flex flex-col" id="editor-panel">
+        <div class="flex items-center justify-between mb-3">
+          <label for="markdown-input" class="font-semibold text-lg">Markdown 输入</label>
+          <div class="flex gap-2">
+            <button id="import-btn" class="text-sm px-3 py-1.5 bg-blue-100 hover:bg-blue-200 rounded border border-blue-200 text-blue-600 transition">导入 Markdown 文件</button>
+            <input id="import-file" type="file" accept=".md,.markdown,.txt" class="hidden">
+          </div>
+        </div>
+        <textarea id="markdown-input" class="w-full edit-height border rounded-lg p-4 font-mono text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" placeholder="在此输入 Markdown...
+
+示例：
+# 标题
+这是一个行内公式：$E = mc^2$
+
+独立行公式：
+$$\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
+
+**粗体** 和 *斜体* 文本。" autofocus></textarea>
+        <div class="flex mt-3 gap-2">
+          <button id="preview-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow transition">实时预览</button>
+          <button id="download-docx-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition">下载 DOCX</button>
+          <button id="copy-html-btn" class="bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg shadow text-gray-700 transition">复制 HTML</button>
+        </div>
+      </div>
+      
+      <!-- 调整拖拽手柄 -->
+      <div class="resize-handle hidden lg:block" id="resize-handle"></div>
+      
+      <!-- 预览区 -->
+      <div class="flex-1 flex flex-col" id="preview-panel">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-semibold text-lg">DOCX 预览</div>
+          <div class="text-sm text-gray-600">LaTeX 公式将转换为图片插入 DOCX</div>
+        </div>
+        <!-- DOCX 样式预览 -->
+        <div id="docx-preview" class="w-full edit-height overflow-auto border rounded-lg bg-gray-100 p-4">
+          <div class="docx-preview">
+            <p class="text-gray-500 text-center">在左侧输入 Markdown，这里将显示 DOCX 预览效果</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 隐藏的 LaTeX 渲染区域 -->
+    <div id="latex-render-area" class="latex-render-hidden"></div>
+  </div>
+
+  <script>
+    let isResizing = false;
+    let katexLoaded = false;
+    
+    // 等待 KaTeX 加载完成
+    function waitForKatex() {
+      return new Promise((resolve) => {
+        if (window.katex && window.renderMathInElement) {
+          katexLoaded = true;
+          resolve();
+        } else {
+          setTimeout(() => waitForKatex().then(resolve), 100);
+        }
+      });
+    }
+    
+    // 初始化拖拽调整功能
+    function initResizable() {
+      const resizeHandle = document.getElementById('resize-handle');
+      const editorPanel = document.getElementById('editor-panel');
+      const previewPanel = document.getElementById('preview-panel');
+      const container = document.getElementById('main-container');
+      
+      resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        e.preventDefault();
+      });
+      
+      function handleMouseMove(e) {
+        if (!isResizing) return;
+        
+        const containerRect = container.getBoundingClientRect();
+        const offsetX = e.clientX - containerRect.left;
+        const containerWidth = containerRect.width;
+        const percentage = Math.min(Math.max(offsetX / containerWidth * 100, 20), 80);
+        
+        editorPanel.style.width = percentage + '%';
+        previewPanel.style.width = (100 - percentage) + '%';
+      }
+      
+      function handleMouseUp() {
+        isResizing = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      }
+    }
+
+    // markdown-it 配置
+    const md = window.markdownit({
+      html: true,
+      linkify: true,
+      typographer: true,
+      breaks: true
+    });
+
+    // 提取 LaTeX 公式
+    function extractLatexFormulas(text) {
+      const formulas = [];
+      const displayPattern = /\$\$([^$]+)\$\$/g;
+      const inlinePattern = /\$([^$]+)\$/g;
+      
+      let match;
+      
+      // 提取独立行公式
+      while ((match = displayPattern.exec(text)) !== null) {
+        formulas.push({
+          original: match[0],
+          latex: match[1].trim(),
+          display: true,
+          id: 'latex-' + Math.random().toString(36).substr(2, 9)
+        });
+      }
+      
+      // 提取行内公式
+      while ((match = inlinePattern.exec(text)) !== null) {
+        // 避免匹配到 $$ 中的内容
+        if (!text.substring(Math.max(0, match.index - 1), match.index + match[0].length + 1).includes('$$')) {
+          formulas.push({
+            original: match[0],
+            latex: match[1].trim(),
+            display: false,
+            id: 'latex-' + Math.random().toString(36).substr(2, 9)
+          });
+        }
+      }
+      
+      return formulas;
+    }
+
+    // 渲染 LaTeX 公式为图片
+    async function renderLatexToImage(formula) {
+      const renderArea = document.getElementById('latex-render-area');
+      const tempDiv = document.createElement('div');
+      tempDiv.style.background = 'white';
+      tempDiv.style.padding = '10px';
+      tempDiv.style.fontSize = '16px';
+      tempDiv.style.display = 'inline-block';
+      
+      try {
+        if (formula.display) {
+          katex.render(formula.latex, tempDiv, {
+            displayMode: true,
+            throwOnError: false
+          });
+        } else {
+          katex.render(formula.latex, tempDiv, {
+            displayMode: false,
+            throwOnError: false
+          });
+        }
+        
+        renderArea.appendChild(tempDiv);
+        
+        // 使用 html2canvas 转换为图片
+        const canvas = await html2canvas(tempDiv, {
+          backgroundColor: 'white',
+          scale: 2 // 提高清晰度
+        });
+        
+        renderArea.removeChild(tempDiv);
+        
+        return canvas.toDataURL('image/png');
+      } catch (error) {
+        console.error('LaTeX 渲染失败:', error);
+        renderArea.removeChild(tempDiv);
+        return null;
+      }
+    }
+
+    // 将 Markdown 转换为适合 DOCX 的结构
+    async function parseMarkdownToDocx(markdown) {
+      const latexFormulas = extractLatexFormulas(markdown);
+      const formulaImages = new Map();
+      
+      // 渲染所有 LaTeX 公式为图片
+      for (const formula of latexFormulas) {
+        const imageData = await renderLatexToImage(formula);
+        if (imageData) {
+          formulaImages.set(formula.original, {
+            data: imageData,
+            display: formula.display
+          });
+        }
+      }
+      
+      // 临时替换 LaTeX 公式为占位符
+      let processedMarkdown = markdown;
+      for (const formula of latexFormulas) {
+        processedMarkdown = processedMarkdown.replace(formula.original, `[LATEX_PLACEHOLDER_${formula.id}]`);
+      }
+      
+      const tokens = md.parse(processedMarkdown);
+      const docxElements = [];
+      
+      function processTokens(tokens) {
+        const elements = [];
+        let currentParagraph = [];
+        
+        for (let i = 0; i < tokens.length; i++) {
+          const token = tokens[i];
+          
+          switch (token.type) {
+            case 'heading_open':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              const level = parseInt(token.tag.substring(1));
+              const headingToken = tokens[i + 1];
+              if (headingToken && headingToken.type === 'inline') {
+                elements.push(createHeading(headingToken.content, level));
+              }
+              i += 2;
+              break;
+              
+            case 'paragraph_open':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              const pToken = tokens[i + 1];
+              if (pToken && pToken.type === 'inline') {
+                elements.push(createParagraph(pToken.content, formulaImages));
+              }
+              i += 2;
+              break;
+              
+            case 'blockquote_open':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              let quoteContent = '';
+              let j = i + 1;
+              while (j < tokens.length && tokens[j].type !== 'blockquote_close') {
+                if (tokens[j].type === 'inline') {
+                  quoteContent += tokens[j].content;
+                }
+                j++;
+              }
+              elements.push(createQuote(quoteContent));
+              i = j;
+              break;
+              
+            case 'bullet_list_open':
+            case 'ordered_list_open':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              const listItems = [];
+              let k = i + 1;
+              while (k < tokens.length && tokens[k].type !== 'bullet_list_close' && tokens[k].type !== 'ordered_list_close') {
+                if (tokens[k].type === 'list_item_open') {
+                  const itemToken = tokens[k + 2];
+                  if (itemToken && itemToken.type === 'inline') {
+                    listItems.push(itemToken.content);
+                  }
+                }
+                k++;
+              }
+              elements.push(createList(listItems, token.type === 'ordered_list_open', formulaImages));
+              i = k;
+              break;
+              
+            case 'code_block':
+            case 'fence':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              elements.push(createCodeBlock(token.content));
+              break;
+              
+            case 'hr':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              elements.push(createHorizontalRule());
+              break;
+              
+            case 'table_open':
+              if (currentParagraph.length > 0) {
+                elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+                currentParagraph = [];
+              }
+              const tableData = parseTable(tokens, i);
+              elements.push(createTable(tableData.rows));
+              i = tableData.endIndex;
+              break;
+          }
+        }
+        
+        if (currentParagraph.length > 0) {
+          elements.push(createParagraph(currentParagraph.join(' '), formulaImages));
+        }
+        
+        return elements;
+      }
+      
+      return processTokens(tokens);
+    }
+
+    // 解析表格
+    function parseTable(tokens, startIndex) {
+      const rows = [];
+      let i = startIndex + 1;
+      
+      while (i < tokens.length && tokens[i].type !== 'table_close') {
+        if (tokens[i].type === 'tr_open') {
+          const row = [];
+          let j = i + 1;
+          while (j < tokens.length && tokens[j].type !== 'tr_close') {
+            if (tokens[j].type === 'th_open' || tokens[j].type === 'td_open') {
+              const cellToken = tokens[j + 1];
+              if (cellToken && cellToken.type === 'inline') {
+                row.push(cellToken.content);
+              }
+            }
+            j++;
+          }
+          rows.push(row);
+          i = j;
+        }
+        i++;
+      }
+      
+      return { rows, endIndex: i };
+    }
+
+    // 创建 DOCX 元素的辅助函数
+    function createHeading(text, level) {
+      return new docx.Paragraph({
+        text: text,
+        heading: `Heading${level}`,
+        spacing: { before: 200, after: 100 }
+      });
+    }
+
+    async function createParagraph(text, formulaImages) {
+      const children = await parseInlineText(text, formulaImages);
+      return new docx.Paragraph({
+        children: children,
+        spacing: { before: 100, after: 100 }
+      });
+    }
+
+    function createQuote(text) {
+      return new docx.Paragraph({
+        text: text,
+        italics: true,
+        indent: { left: 720 },
+        spacing: { before: 100, after: 100 }
+      });
+    }
+
+    async function createList(items, isOrdered, formulaImages) {
+      const listItems = [];
+      for (const item of items) {
+        const children = await parseInlineText(item, formulaImages);
+        listItems.push(new docx.Paragraph({
+          children: children,
+          bullet: isOrdered ? undefined : { level: 0 },
+          numbering: isOrdered ? { reference: "numbering", level: 0 } : undefined,
+          spacing: { before: 50, after: 50 }
+        }));
+      }
+      return listItems;
+    }
+
+    function createCodeBlock(code) {
+      return new docx.Paragraph({
+        text: code,
+        font: "Courier New",
+        size: 20,
+        shading: { fill: "f5f5f5" },
+        spacing: { before: 100, after: 100 }
+      });
+    }
+
+    function createHorizontalRule() {
+      return new docx.Paragraph({
+        text: "",
+        border: {
+          bottom: {
+            color: "000000",
+            space: 1,
+            value: "single",
+            size: 6
+          }
+        },
+        spacing: { before: 100, after: 100 }
+      });
+    }
+
+    function createTable(rows) {
+      const tableRows = rows.map(row => {
+        return new docx.TableRow({
+          children: row.map(cell => {
+            return new docx.TableCell({
+              children: [new docx.Paragraph({ text: cell })],
+              borders: {
+                top: { style: "single", size: 1 },
+                bottom: { style: "single", size: 1 },
+                left: { style: "single", size: 1 },
+                right: { style: "single", size: 1 }
+              }
+            });
+          })
+        });
+      });
+
+      return new docx.Table({
+        rows: tableRows,
+        width: { size: 100, type: docx.WidthType.PERCENTAGE }
+      });
+    }
+
+    // 解析内联文本样式（包括 LaTeX 公式）
+    async function parseInlineText(text, formulaImages) {
+      const children = [];
+      const parts = text.split(/(\[LATEX_PLACEHOLDER_[^\]]+\]|\*\*.*?\*\*|\*.*?\*|`.*?`)/);
+      
+      for (const part of parts) {
+        if (part.startsWith('[LATEX_PLACEHOLDER_')) {
+          // 查找对应的 LaTeX 公式
+          const originalFormula = Array.from(formulaImages.keys()).find(key => 
+            text.includes(part)
+          );
+          if (originalFormula && formulaImages.has(originalFormula)) {
+            const imageInfo = formulaImages.get(originalFormula);
+            const imageBuffer = dataURLtoBuffer(imageInfo.data);
+            children.push(new docx.ImageRun({
+              data: imageBuffer,
+              transformation: {
+                width: imageInfo.display ? 400 : 200,
+                height: imageInfo.display ? 100 : 50,
+              },
+            }));
+          }
+        } else if (part.startsWith('**') && part.endsWith('**')) {
+          children.push(new docx.TextRun({
+            text: part.slice(2, -2),
+            bold: true
+          }));
+        } else if (part.startsWith('*') && part.endsWith('*')) {
+          children.push(new docx.TextRun({
+            text: part.slice(1, -1),
+            italics: true
+          }));
+        } else if (part.startsWith('`') && part.endsWith('`')) {
+          children.push(new docx.TextRun({
+            text: part.slice(1, -1),
+            font: "Courier New",
+            size: 20
+          }));
+        } else if (part) {
+          children.push(new docx.TextRun({ text: part }));
+        }
+      }
+      
+      return children.length > 0 ? children : [new docx.TextRun({ text: text })];
+    }
+
+    // 将 dataURL 转换为 Buffer
+    function dataURLtoBuffer(dataURL) {
+      const base64 = dataURL.split(',')[1];
+      const binaryString = window.atob(base64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    // 更新预览
+    async function updatePreview() {
+      const mdText = document.getElementById('markdown-input').value;
+      const htmlResult = md.render(mdText);
+      
+      const previewDiv = document.querySelector('#docx-preview .docx-preview');
+      if (mdText.trim()) {
+        previewDiv.innerHTML = htmlResult;
+        
+        // 渲染 LaTeX 公式
+        if (katexLoaded) {
+          renderMathInElement(previewDiv, {
+            delimiters: [
+              {left: "$$", right: "$$", display: true},
+              {left: "$", right: "$", display: false}
+            ],
+            throwOnError: false
+          });
+        }
+      } else {
+        previewDiv.innerHTML = '<p class="text-gray-500 text-center">在左侧输入 Markdown，这里将显示 DOCX 预览效果</p>';
+      }
+    }
+
+    // 生成并下载 DOCX
+    async function generateDocx() {
+      const mdText = document.getElementById('markdown-input').value;
+      const btn = document.getElementById('download-docx-btn');
+      
+      if (!mdText.trim()) {
+        alert('请输入 Markdown 内容');
+        return;
+      }
+      
+      btn.textContent = '生成中...';
+      btn.disabled = true;
+      
+      try {
+        const docxElements = await parseMarkdownToDocx(mdText);
+        const flatElements = docxElements.flat();
+        
+        const doc = new docx.Document({
+          sections: [{
+            properties: {},
+            children: flatElements
+          }]
+        });
+        
+        const buffer = await docx.Packer.toBuffer(doc);
+        const blob = new Blob([buffer], { 
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+        });
+        
+        const fileName = `markdown-export-${new Date().toISOString().slice(0, 10)}.docx`;
+        saveAs(blob, fileName);
+        
+        btn.textContent = '下载成功!';
+        setTimeout(() => {
+          btn.textContent = '下载 DOCX';
+          btn.disabled = false;
+        }, 2000);
+        
+      } catch (error) {
+        console.error('生成 DOCX 失败:', error);
+        alert('生成 DOCX 失败，请检查 Markdown 格式');
+        btn.textContent = '下载 DOCX';
+        btn.disabled = false;
+      }
+    }
+
+    // 事件绑定
+    document.getElementById('preview-btn').onclick = updatePreview;
+    document.getElementById('markdown-input').addEventListener('input', updatePreview);
+    document.getElementById('download-docx-btn').onclick = generateDocx;
+
+    // 复制 HTML
+    document.getElementById('copy-html-btn').onclick = async function() {
+      const html = md.render(document.getElementById('markdown-input').value);
+      try {
+        await navigator.clipboard.writeText(html);
+        this.innerText = '复制成功！';
+        setTimeout(() => { this.innerText = '复制 HTML'; }, 1000);
+      } catch {
+        alert('复制失败，请手动复制。');
+      }
+    };
+
+    // 导入 Markdown 文件
+    document.getElementById('import-btn').onclick = function () {
+      document.getElementById('import-file').click();
+    };
+    
+    document.getElementById('import-file').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('markdown-input').value = event.target.result;
+        updatePreview();
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    // 页面加载后初始化
+    window.addEventListener('load', async () => {
+      await waitForKatex();
+      initResizable();
+      updatePreview();
+    });
+  </script>
+</body>
+</html>
