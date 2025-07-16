@@ -9,18 +9,24 @@
     
     // 全局配置
     const CONFIG = {
-        // 基础参数
+        // 基础参数（增大半径一倍）
         minSpeed: 0.3,
         maxSpeed: 0.8,
-        attractRadius: 60,
-        captureRadius: 120,
+        attractRadius: 120,     // 从60增大到120
+        captureRadius: 240,     // 从120增大到240
         attractSpeedMultiplier: 5,
         escapeThreshold: 15,
-        connectionDistance: 150,
+        connectionDistance: 300, // 从150增大到300
         pointCount: 20,
+        
+        // 引力系统参数
+        gravity: 0.0001,        // 非常小的引力常数
+        minDistance: 8,         // 最小距离，防止重叠
+        collisionDamping: 0.8,  // 碰撞阻尼
         
         // 调试模式
         debugMode: false,
+        showControlPanel: false,
         
         // 简化模式的颜色
         simple: {
@@ -49,6 +55,210 @@
         EJECTED: 'ejected'
     };
     
+    // 控制面板类
+    class ControlPanel {
+        constructor(magneticBackground) {
+            this.mb = magneticBackground;
+            this.panel = null;
+            this.isVisible = false;
+            this.createPanel();
+        }
+        
+        createPanel() {
+            this.panel = document.createElement('div');
+            this.panel.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                width: 320px;
+                max-height: 80vh;
+                overflow-y: auto;
+                background: rgba(255, 255, 255, 0.95);
+                border-radius: 8px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                z-index: 10000;
+                display: none;
+                padding: 20px;
+                backdrop-filter: blur(10px);
+            `;
+            
+            this.panel.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #333;">Magnetic Background Control</h3>
+                    <button id="closePanel" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #666;">×</button>
+                </div>
+                
+                <div class="info-section" style="margin-bottom: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <div>鼠标位置: <span id="mousePos">0, 0</span></div>
+                    <div>鼠标速度: <span id="mouseSpeed">0</span> px/frame</div>
+                    <div>总点数: <span id="pointCount">0</span></div>
+                    <div>吸引中: <span id="attractedCount" style="color: #28a745; font-weight: bold;">0</span></div>
+                    <div>向内移动: <span id="movingCount" style="color: #ffc107; font-weight: bold;">0</span></div>
+                    <div>被甩掉: <span id="ejectedCount" style="color: #6f42c1; font-weight: bold;">0</span></div>
+                    <div>自由状态: <span id="freeCount">0</span></div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">点速度范围:</label>
+                    <input type="range" id="minSpeed" min="0.1" max="1" step="0.1" value="${CONFIG.minSpeed}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">最小: <span id="minSpeedValue">${CONFIG.minSpeed}</span></div>
+                    <input type="range" id="maxSpeed" min="0.5" max="2" step="0.1" value="${CONFIG.maxSpeed}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">最大: <span id="maxSpeedValue">${CONFIG.maxSpeed}</span></div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">吸引半径:</label>
+                    <input type="range" id="attractRadius" min="50" max="200" step="5" value="${CONFIG.attractRadius}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">当前: <span id="attractRadiusValue">${CONFIG.attractRadius}</span> px</div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">捕获半径:</label>
+                    <input type="range" id="captureRadius" min="100" max="400" step="10" value="${CONFIG.captureRadius}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">当前: <span id="captureRadiusValue">${CONFIG.captureRadius}</span> px</div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">引力强度:</label>
+                    <input type="range" id="gravity" min="0" max="0.001" step="0.0001" value="${CONFIG.gravity}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">当前: <span id="gravityValue">${CONFIG.gravity}</span></div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">吸引速度倍数:</label>
+                    <input type="range" id="attractSpeedMultiplier" min="2" max="10" step="0.5" value="${CONFIG.attractSpeedMultiplier}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">当前: <span id="attractSpeedMultiplierValue">${CONFIG.attractSpeedMultiplier}</span> 倍</div>
+                </div>
+                
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">甩掉速度阈值:</label>
+                    <input type="range" id="escapeThreshold" min="5" max="30" step="1" value="${CONFIG.escapeThreshold}" style="width: 100%; margin-bottom: 5px;">
+                    <div style="color: #666; font-size: 12px;">当前: <span id="escapeThresholdValue">${CONFIG.escapeThreshold}</span> px/frame</div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="resetPoints" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer;">重置点</button>
+                    <button id="toggleAnimation" style="flex: 1; padding: 8px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer;">切换动画</button>
+                </div>
+            `;
+            
+            document.body.appendChild(this.panel);
+            this.setupEventListeners();
+        }
+        
+        setupEventListeners() {
+            // 关闭按钮
+            this.panel.querySelector('#closePanel').addEventListener('click', () => {
+                this.hide();
+            });
+            
+            // 控制滑块
+            const controls = [
+                { id: 'minSpeed', setting: 'minSpeed', callback: () => this.mb.updatePointSpeeds() },
+                { id: 'maxSpeed', setting: 'maxSpeed', callback: () => this.mb.updatePointSpeeds() },
+                { id: 'attractRadius', setting: 'attractRadius' },
+                { id: 'captureRadius', setting: 'captureRadius' },
+                { id: 'gravity', setting: 'gravity' },
+                { id: 'attractSpeedMultiplier', setting: 'attractSpeedMultiplier' },
+                { id: 'escapeThreshold', setting: 'escapeThreshold' }
+            ];
+            
+            controls.forEach(control => {
+                const slider = this.panel.querySelector(`#${control.id}`);
+                const valueSpan = this.panel.querySelector(`#${control.id}Value`);
+                
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    CONFIG[control.setting] = value;
+                    valueSpan.textContent = value;
+                    
+                    // 确保半径关系正确
+                    if (control.id === 'attractRadius' && value >= CONFIG.captureRadius) {
+                        CONFIG.captureRadius = value + 20;
+                        this.panel.querySelector('#captureRadius').value = CONFIG.captureRadius;
+                        this.panel.querySelector('#captureRadiusValue').textContent = CONFIG.captureRadius;
+                    }
+                    if (control.id === 'captureRadius' && value <= CONFIG.attractRadius) {
+                        CONFIG.attractRadius = value - 20;
+                        this.panel.querySelector('#attractRadius').value = CONFIG.attractRadius;
+                        this.panel.querySelector('#attractRadiusValue').textContent = CONFIG.attractRadius;
+                    }
+                    
+                    if (control.callback) {
+                        control.callback();
+                    }
+                });
+            });
+            
+            // 按钮
+            this.panel.querySelector('#resetPoints').addEventListener('click', () => {
+                this.mb.generatePoints();
+            });
+            
+            this.panel.querySelector('#toggleAnimation').addEventListener('click', () => {
+                if (this.mb.isAnimating) {
+                    this.mb.stopAnimation();
+                } else {
+                    this.mb.startAnimation();
+                }
+            });
+        }
+        
+        show() {
+            this.isVisible = true;
+            this.panel.style.display = 'block';
+            CONFIG.showControlPanel = true;
+        }
+        
+        hide() {
+            this.isVisible = false;
+            this.panel.style.display = 'none';
+            CONFIG.showControlPanel = false;
+        }
+        
+        toggle() {
+            if (this.isVisible) {
+                this.hide();
+            } else {
+                this.show();
+            }
+        }
+        
+        updateInfo() {
+            if (!this.isVisible) return;
+            
+            const mousePos = this.panel.querySelector('#mousePos');
+            const mouseSpeed = this.panel.querySelector('#mouseSpeed');
+            const pointCount = this.panel.querySelector('#pointCount');
+            const attractedCount = this.panel.querySelector('#attractedCount');
+            const movingCount = this.panel.querySelector('#movingCount');
+            const ejectedCount = this.panel.querySelector('#ejectedCount');
+            const freeCount = this.panel.querySelector('#freeCount');
+            
+            if (mousePos) mousePos.textContent = `${Math.round(this.mb.mouse.x)}, ${Math.round(this.mb.mouse.y)}`;
+            if (mouseSpeed) mouseSpeed.textContent = Math.round(this.mb.mouse.speed * 10) / 10;
+            if (pointCount) pointCount.textContent = this.mb.points.length;
+            
+            const attracted = this.mb.points.filter(p => p.state === PointState.ATTRACTED).length;
+            const moving = this.mb.points.filter(p => p.state === PointState.MOVING_TO_MOUSE).length;
+            const ejected = this.mb.points.filter(p => p.state === PointState.EJECTED).length;
+            const free = this.mb.points.filter(p => p.state === PointState.FREE).length;
+            
+            if (attractedCount) attractedCount.textContent = attracted;
+            if (movingCount) movingCount.textContent = moving;
+            if (ejectedCount) ejectedCount.textContent = ejected;
+            if (freeCount) freeCount.textContent = free;
+        }
+        
+        destroy() {
+            if (this.panel && this.panel.parentNode) {
+                this.panel.parentNode.removeChild(this.panel);
+            }
+        }
+    }
+    
     // 磁性背景类
     class MagneticBackground {
         constructor() {
@@ -57,10 +267,11 @@
             this.width = 0;
             this.height = 0;
             this.points = [];
-            this.mouse = { x: 0, y: 0, prevX: 0, prevY: 0, speed: 0 };
+            this.mouse = { x: 0, y: 0, prevX: 0, prevY: 0, speed: 0, inBounds: false };
             this.animationId = null;
             this.isAnimating = true;
             this.frameCount = 0;
+            this.controlPanel = null;
             
             this.init();
         }
@@ -69,6 +280,7 @@
             this.createCanvas();
             this.setupEventListeners();
             this.generatePoints();
+            this.controlPanel = new ControlPanel(this);
             this.animate();
         }
         
@@ -106,13 +318,23 @@
             document.addEventListener('mousemove', (e) => {
                 this.mouse.x = e.clientX;
                 this.mouse.y = e.clientY;
+                this.mouse.inBounds = true;
             });
             
-            // 调试模式切换
+            // 鼠标离开和进入
+            document.addEventListener('mouseenter', () => {
+                this.mouse.inBounds = true;
+            });
+            
+            document.addEventListener('mouseleave', () => {
+                this.mouse.inBounds = false;
+            });
+            
+            // 调试模式和控制面板切换
             document.addEventListener('keydown', (e) => {
                 if (e.ctrlKey && e.shiftKey && e.code === 'F5') {
                     e.preventDefault();
-                    this.toggleDebugMode();
+                    this.toggleControlPanel();
                 }
             });
             
@@ -126,9 +348,10 @@
             });
         }
         
-        toggleDebugMode() {
+        toggleControlPanel() {
             CONFIG.debugMode = !CONFIG.debugMode;
-            console.log('Magnetic Background Debug Mode:', CONFIG.debugMode ? 'ON' : 'OFF');
+            this.controlPanel.toggle();
+            console.log('Magnetic Background Control Panel:', CONFIG.debugMode ? 'ON' : 'OFF');
         }
         
         randomSpeed() {
@@ -150,6 +373,8 @@
                     originalVx: 0,
                     originalVy: 0,
                     baseSpeed: speed,
+                    mass: 1, // 用于碰撞计算
+                    radius: 3, // 碰撞半径
                     connections: [],
                     state: PointState.FREE,
                     distanceToMouse: 0
@@ -195,6 +420,16 @@
                 (point.x - this.mouse.x) ** 2 + (point.y - this.mouse.y) ** 2
             );
             
+            // 鼠标不在界面内时，所有点都变为自由状态
+            if (!this.mouse.inBounds) {
+                if (point.state !== PointState.FREE) {
+                    point.state = PointState.FREE;
+                    point.vx = point.originalVx;
+                    point.vy = point.originalVy;
+                }
+                return;
+            }
+            
             // 检查是否应该被甩掉
             if (this.mouse.speed > CONFIG.escapeThreshold && 
                 (point.state === PointState.ATTRACTED || point.state === PointState.MOVING_TO_MOUSE)) {
@@ -202,7 +437,7 @@
                 return;
             }
             
-            // 被甩掉的点立即重新判断状态（无冷却时间）
+            // 被甩掉的点立即重新判断状态
             if (point.state === PointState.EJECTED) {
                 if (point.distanceToMouse <= CONFIG.attractRadius) {
                     point.state = PointState.ATTRACTED;
@@ -228,6 +463,78 @@
             }
         }
         
+        // 应用引力
+        applyGravity(point) {
+            if (CONFIG.gravity === 0) return;
+            
+            this.points.forEach(otherPoint => {
+                if (point === otherPoint) return;
+                
+                const dx = otherPoint.x - point.x;
+                const dy = otherPoint.y - point.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > CONFIG.minDistance) {
+                    const force = CONFIG.gravity * point.mass * otherPoint.mass / (distance * distance);
+                    const forceX = force * (dx / distance);
+                    const forceY = force * (dy / distance);
+                    
+                    point.vx += forceX / point.mass;
+                    point.vy += forceY / point.mass;
+                }
+            });
+        }
+        
+        // 处理碰撞
+        handleCollisions(point) {
+            this.points.forEach(otherPoint => {
+                if (point === otherPoint) return;
+                
+                const dx = otherPoint.x - point.x;
+                const dy = otherPoint.y - point.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const minDistance = point.radius + otherPoint.radius;
+                
+                if (distance < minDistance) {
+                    // 弹性碰撞
+                    const overlap = minDistance - distance;
+                    const separationX = (dx / distance) * overlap * 0.5;
+                    const separationY = (dy / distance) * overlap * 0.5;
+                    
+                    // 分离点
+                    point.x -= separationX;
+                    point.y -= separationY;
+                    otherPoint.x += separationX;
+                    otherPoint.y += separationY;
+                    
+                    // 计算碰撞后的速度
+                    const relativeVx = point.vx - otherPoint.vx;
+                    const relativeVy = point.vy - otherPoint.vy;
+                    const speed = relativeVx * (dx / distance) + relativeVy * (dy / distance);
+                    
+                    if (speed > 0) return; // 已经在分离
+                    
+                    const totalMass = point.mass + otherPoint.mass;
+                    const impulse = 2 * speed / totalMass * CONFIG.collisionDamping;
+                    
+                    point.vx -= impulse * otherPoint.mass * (dx / distance);
+                    point.vy -= impulse * otherPoint.mass * (dy / distance);
+                    otherPoint.vx += impulse * point.mass * (dx / distance);
+                    otherPoint.vy += impulse * point.mass * (dy / distance);
+                    
+                    // 更新原始速度
+                    if (point.state === PointState.FREE) {
+                        point.originalVx = point.vx;
+                        point.originalVy = point.vy;
+                    }
+                    if (otherPoint.state === PointState.FREE) {
+                        otherPoint.originalVx = otherPoint.vx;
+                        otherPoint.originalVy = otherPoint.vy;
+                    }
+                }
+            });
+        }
+        
         applyBoundaryBounce(point) {
             let bounced = false;
             
@@ -248,6 +555,9 @@
         }
         
         updatePointPosition(point) {
+            // 应用引力
+            this.applyGravity(point);
+            
             switch (point.state) {
                 case PointState.FREE:
                     point.x += point.vx;
@@ -348,12 +658,27 @@
                     }
                     break;
             }
+            
+            // 处理碰撞
+            this.handleCollisions(point);
         }
         
         updatePoints() {
             this.points.forEach(point => {
                 this.updatePointState(point);
                 this.updatePointPosition(point);
+            });
+        }
+        
+        updatePointSpeeds() {
+            this.points.forEach(point => {
+                const newSpeed = this.randomSpeed();
+                const speedRatio = newSpeed / point.baseSpeed;
+                point.baseSpeed = newSpeed;
+                point.vx *= speedRatio;
+                point.vy *= speedRatio;
+                point.originalVx *= speedRatio;
+                point.originalVy *= speedRatio;
             });
         }
         
@@ -470,7 +795,7 @@
         }
         
         drawMouseConnections() {
-            if (!CONFIG.debugMode) return;
+            if (!CONFIG.debugMode || !this.mouse.inBounds) return;
             
             const colors = CONFIG.debug;
             
@@ -492,7 +817,7 @@
         }
         
         drawRadiusCircles() {
-            if (!CONFIG.debugMode) return;
+            if (!CONFIG.debugMode || !this.mouse.inBounds) return;
             
             const colors = CONFIG.debug;
             
@@ -534,6 +859,9 @@
             this.drawMouseConnections();
             this.drawPoints();
             
+            // 更新控制面板信息
+            this.controlPanel.updateInfo();
+            
             this.animationId = requestAnimationFrame(() => this.animate());
         }
         
@@ -554,6 +882,9 @@
         
         destroy() {
             this.stopAnimation();
+            if (this.controlPanel) {
+                this.controlPanel.destroy();
+            }
             if (this.canvas && this.canvas.parentNode) {
                 this.canvas.parentNode.removeChild(this.canvas);
             }
@@ -579,5 +910,5 @@
     initMagneticBackground();
     
     // 控制台提示
-    console.log('Magnetic Background loaded! Press Ctrl+Shift+F5 to toggle debug mode.');
+    console.log('Enhanced Magnetic Background loaded! Press Ctrl+Shift+F5 to toggle control panel.');
 })();
