@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown 转 HTML 工具</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- markdown-it 用于 Markdown 转换 -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.0.0/dist/markdown-it.min.js"></script>
+</head>
+<body class="min-h-screen bg-gray-50 pt-8 pb-4 px-2 lg:px-8">
+  <script src="/js/background.js"></script>
+  <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6">
+    <h1 class="text-2xl font-bold mb-4 text-teal-700">Markdown 转 HTML 工具</h1>
+    <div class="flex flex-col md:flex-row gap-4">
+      <!-- Markdown 编辑区 -->
+      <div class="flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <label for="markdown-input" class="font-semibold">Markdown 输入</label>
+          <button id="import-btn" class="text-sm px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded border border-blue-200 text-blue-600">导入 Markdown 文件</button>
+          <input id="import-file" type="file" accept=".md,.markdown,.txt" class="hidden">
+        </div>
+        <textarea id="markdown-input" class="w-full h-72 border rounded p-2 font-mono" placeholder="在此输入 Markdown..." autofocus></textarea>
+        <div class="flex mt-2 gap-2">
+          <button id="preview-btn" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded shadow">实时预览</button>
+          <button id="copy-html-btn" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded shadow text-gray-700">复制结果 HTML</button>
+        </div>
+      </div>
+      <!-- HTML 预览区 -->
+      <div class="flex-1 flex flex-col pl-0 md:pl-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-semibold">HTML 预览</div>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="iframe-preview" class="rounded">
+            <span>iframe渲染预览</span>
+          </label>
+        </div>
+        <!-- 源码预览 -->
+        <pre id="html-preview" class="w-full h-72 overflow-auto border rounded p-4 bg-gray-50 text-xs font-mono whitespace-pre-wrap"></pre>
+        <!-- iframe 预览 -->
+        <iframe id="iframe-preview-frame" class="w-full h-72 border rounded bg-white hidden" sandbox="allow-scripts"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let htmlTemplate = null;
+    
+    // 加载HTML模板
+    async function loadTemplate() {
+      if (!htmlTemplate) {
+        try {
+          const response = await fetch('/html/mdtohtml/template.html');
+          htmlTemplate = await response.text();
+        } catch (error) {
+          console.error('加载模板失败:', error);
+          // 使用备用简单模板
+          htmlTemplate = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Markdown HTML 结果</title>
+<style>body{margin:0;padding:2em;background:#f9fafb;font-family:system-ui,Arial;}pre{background:#f3f3f3;border-radius:6px;padding:12px;overflow:auto;}code{font-size:14px;}</style>
+</head>
+<body>
+<div class="prose">{{CONTENT}}</div>
+</body>
+</html>`;
+        }
+      }
+      return htmlTemplate;
+    }
+
+    // markdown-it：重定义 fence 渲染器实现代码块复制按钮
+    const md = window.markdownit({
+      html: true,
+      linkify: true,
+      typographer: true,
+      highlight: function (str, lang) {
+        return '<pre class="relative group"><code' +
+          (lang ? ' class="language-' + lang + '"' : '') + '>' +
+          md.utils.escapeHtml(str) + '</code></pre>';
+      }
+    });
+    
+    // 自定义代码块渲染，加"复制"按钮
+    const defaultFence = md.renderer.rules.fence || function(tokens, idx, options, env, self) {
+      const token = tokens[idx];
+      const info = token.info ? 'language-' + md.utils.escapeHtml(token.info) : '';
+      const content = md.utils.escapeHtml(token.content);
+      const uniqueId = 'mdcodeclip_' + Math.random().toString(36).substr(2, 9);
+      return `<pre class="relative group"><button class="absolute top-2 right-2 bg-gray-200 px-2 py-0.5 rounded text-xs text-gray-700 hover:bg-blue-200 opacity-0 group-hover:opacity-100 transition" data-copy-id="${uniqueId}">复制</button><code id="${uniqueId}" class="${info}">${content}</code></pre>`;
+    };
+    md.renderer.rules.fence = defaultFence;
+
+    // 使用模板构建完整HTML
+    async function buildFullHTML(htmlBody) {
+      const template = await loadTemplate();
+      return template.replace('{{CONTENT}}', htmlBody);
+    }
+
+    async function updatePreview() {
+      const mdText = document.getElementById('markdown-input').value;
+      const htmlResult = md.render(mdText);
+      const fullHtml = await buildFullHTML(htmlResult);
+      
+      const isIframeMode = document.getElementById('iframe-preview').checked;
+      const htmlPreview = document.getElementById('html-preview');
+      const iframePreview = document.getElementById('iframe-preview-frame');
+      
+      if (isIframeMode) {
+        // iframe 模式：显示渲染后的内容
+        htmlPreview.classList.add('hidden');
+        iframePreview.classList.remove('hidden');
+        
+        // 创建 blob URL 并设置到 iframe
+        const blob = new Blob([fullHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        iframePreview.src = url;
+      } else {
+        // 源码模式：显示 HTML 源码
+        htmlPreview.classList.remove('hidden');
+        iframePreview.classList.add('hidden');
+        htmlPreview.textContent = fullHtml;
+      }
+      
+      setTimeout(bindCopyButtons, 30);
+    }
+
+    // 代码块复制按钮(实时页面)
+    function bindCopyButtons() {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = md.render(document.getElementById('markdown-input').value);
+      const buttons = document.querySelectorAll('button[data-copy-id]');
+      buttons.forEach(btn => {
+        const id = btn.getAttribute('data-copy-id');
+        btn.onclick = function(e) {
+          e.preventDefault();
+          const code = tmp.querySelector('#' + id);
+          const text = code ? code.textContent : '';
+          if(!text) return;
+          navigator.clipboard.writeText(text).then(()=> {
+            btn.textContent = "已复制!";
+            setTimeout(()=>{ btn.textContent = "复制"; }, 1200);
+          });
+        };
+      });
+    }
+
+    // 预览模式切换
+    document.getElementById('iframe-preview').addEventListener('change', updatePreview);
+
+    // 预览&事件绑定
+    document.getElementById('preview-btn').onclick = updatePreview;
+    document.getElementById('markdown-input').addEventListener('keyup', updatePreview);
+    
+    // 页面加载后初始化
+    window.addEventListener('load', updatePreview);
+
+    // 复制完整HTML源码
+    document.getElementById('copy-html-btn').onclick = async function() {
+      const htmlResult = md.render(document.getElementById('markdown-input').value);
+      const html = await buildFullHTML(htmlResult);
+      try {
+        await navigator.clipboard.writeText(html);
+        this.innerText = '复制成功！';
+        setTimeout(() => { this.innerText = '复制结果 HTML'; }, 1000);
+      } catch {
+        alert('复制失败，请手动复制。');
+      }
+    };
+
+    // 导入markdown文件
+    document.getElementById('import-btn').onclick = function () {
+      document.getElementById('import-file').click();
+    };
+    document.getElementById('import-file').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.getElementById('markdown-input').value = event.target.result;
+        updatePreview();
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+  </script>
+</body>
+</html>
