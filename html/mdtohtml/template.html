@@ -8,10 +8,207 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 <style>
-body { margin:0; padding:2em; background:#f9fafb; font-family:system-ui, Arial;}
-pre { background:#f3f3f3; border-radius:6px; padding:12px; overflow:auto;}
-code { font-size:14px;}
-.prose { max-width: none; }
+body { 
+  margin: 0; 
+  padding: 2em; 
+  background: #f9fafb; 
+  font-family: system-ui, -apple-system, Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.prose { 
+  max-width: none; 
+  color: #374151;
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2.25em; color: #1f2937; border-bottom: 3px solid #3b82f6; padding-bottom: 0.3em; }
+h2 { font-size: 1.875em; color: #1f2937; border-bottom: 2px solid #6b7280; padding-bottom: 0.2em; }
+h3 { font-size: 1.5em; color: #374151; }
+h4 { font-size: 1.25em; color: #374151; }
+
+/* 段落 */
+p { margin-bottom: 1em; }
+
+/* 引用样式 */
+blockquote {
+  margin: 1.5em 0;
+  padding: 1em 1.5em;
+  border-left: 4px solid #3b82f6;
+  background: #f1f5f9;
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  color: #475569;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+/* 表格样式 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #d1d5db;
+}
+
+tr:hover {
+  background: #f9fafb;
+}
+
+/* 列表样式 */
+ul, ol {
+  padding-left: 1.5em;
+  margin: 1em 0;
+}
+
+li {
+  margin-bottom: 0.5em;
+}
+
+/* 代码样式 */
+pre {
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 1.5em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  position: relative;
+}
+
+code {
+  font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  font-size: 0.9em;
+}
+
+pre code {
+  color: #e5e7eb;
+  background: none;
+  padding: 0;
+}
+
+/* 行内代码 */
+p code, li code {
+  background: #f1f5f9;
+  color: #be185d;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+/* 链接样式 */
+a {
+  color: #3b82f6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+a:hover {
+  color: #1d4ed8;
+  border-bottom-color: #3b82f6;
+}
+
+/* 分隔线 */
+hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  margin: 2em 0;
+  border-radius: 1px;
+}
+
+/* 代码块复制按钮样式 */
+.relative {
+  position: relative;
+}
+
+.group:hover .opacity-0 {
+  opacity: 1;
+}
+
+.transition {
+  transition: all 0.2s ease;
+}
+
+button[data-copy-id] {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #374151;
+  color: #f9fafb;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+button[data-copy-id]:hover {
+  background: #1f2937;
+}
+
+/* 任务列表样式 */
+ul.task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.task-list-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5em;
+}
+
+.task-list-item input[type="checkbox"] {
+  margin-right: 0.5em;
+}
+
+/* 图片样式 */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 1em 0;
+}
+
+/* 数学公式样式 */
+.katex-display {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+.katex {
+  font-size: 1.1em;
+}
 </style>
 </head>
 <body>
